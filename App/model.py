@@ -30,117 +30,124 @@ from DISClib.ADT import list as lt
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
 from DISClib.DataStructures import mapentry as me
+from DISClib.Algorithms.Sorting import mergesort as merge
 assert cf
-
-
-"""
-Se define la estructura de un catálogo de videos. El catálogo tendrá dos listas, una para los videos, otra para las categorias de
-los mismos.
-"""
 
 # Construccion de modelos
 
 def newCatalog():
-    """ Inicializa el catálogo de obras
-
-    Crea una lista vacia para guardar todos las obras
-
-    Se crean indices (Maps) por los siguientes criterios:
-    Obras
-    Medios
-
-    Retorna el catalogo inicializado.
-    """
     catalog = {'artworks': None,
-               'artworkIds': None,}
-    """
-    Esta lista contiene todo las obras encontradas
-    en los archivos de carga.  Estas obras no estan
-    ordenados por ningun criterio.  Son referenciados
-    por los indices creados a continuacion.
-    """
-    catalog['artworks'] = lt.newList('SINGLE_LINKED', compareArtworkIds)
-    """
-    A continuacion se crean indices por diferentes criterios
-    para llegar a la informacion consultada.  Estos indices no
-    replican informacion, solo referencian las obras de la lista
-    creada en el paso anterior.
-    """
-
-    """
-    Este indice crea un map cuya llave es el identificador de la obra
-    """
-    catalog['artworkIds'] = mp.newMap(250,
-                                   maptype='CHAINING',
-                                   loadfactor=4.0,
-                                   comparefunction=compareMapArtworkIds)
-    """
-    Este indice crea un map cuya llave es el medio
-    """
+               'artworkIds': None,
+               'artists': None,
+               'artistIds': None,
+               'mediumIds': None,
+               'nationalityIds': None}
+ 
+    catalog['artworks'] = lt.newList('SINGLE_LINKED', compareArtworkandArtistIds)
+    catalog['artworkIds'] = mp.newMap(1543,
+                                   maptype='PROBING',
+                                   loadfactor=0.5,
+                                   comparefunction=compareMapArtworkandArtistIds)
+    catalog['artists'] = lt.newList('SINGLE_LINKED', compareArtworkandArtistIds)
+    catalog['artistIds'] = mp.newMap(3907,
+                                   maptype='PROBING',
+                                   loadfactor=0.5,
+                                   comparefunction=compareMapArtworkandArtistIds)
+    catalog['mediumIds'] = mp.newMap(768,
+                                   maptype='PROBING',
+                                   loadfactor=0.5)
+    catalog['nationalityIds'] = mp.newMap(101,
+                                   maptype='PROBING',
+                                   loadfactor=0.5)
 
     return catalog
 
-def newArtworkMedium(name, id):
-    """
-    Esta estructura crea una relación entre un medium y las obras
-    hechas en dicho medium. Se guarga el total de obras y una lista con
-    dichas obras.
-    """
+def newArtworkMedium(name, first_artwork):
     medium = {'name': '',
-           'medium_id': '',
-           'total_artworks': 0,
-           'artworks': None,
-           'count': 0.0}
+           'total_artworks': 1,
+           'artworks': None,}
     medium['name'] = name
-    medium['medium_id'] = id
     medium['artworks'] = lt.newList()
+    lt.addLast(medium['artworks'], first_artwork)
     return medium
-    
+
+def newArtworkNationality(name, first_artwork):
+    Nationality = {'name': '',
+           'total_artworks': 1,
+           'artworks': None,}
+    Nationality['name'] = name
+    Nationality['artworks'] = lt.newList()
+    lt.addLast(Nationality['artworks'], first_artwork)
+    return Nationality
 
 # Funciones para agregar informacion al catalogo
 
 def addArtwork(catalog, artwork):
-    """
-    Esta funcion adiciona una obra a la lista de obras,
-    adicionalmente lo guarda en un Map usando como llave su Id.
-    """
     lt.addLast(catalog['artworks'], artwork)
     mp.put(catalog['artworkIds'], artwork['ObjectID'], artwork)
     
+def addArtist(catalog, artist):
+    lt.addLast(catalog['artists'], artist)
+    mp.put(catalog['artistIds'], artist['ConstituentID'], artist)
+
+def addMedium(catalog, medium, artwork):
+    if mp.contains(catalog['mediumIds'],medium) == False:
+        mp.put(catalog['mediumIds'], medium, newArtworkMedium(medium, artwork))     
+    else:
+        artworks_list_medium = me.getValue(mp.get(catalog['mediumIds'], medium))['artworks']
+        lt.addLast(artworks_list_medium, artwork)
+        me.getValue(mp.get(catalog['mediumIds'], medium))['total_artworks'] += 1
+
+def addNationality(catalog, artistIds_list, artwork):
+    for artistId in artistIds_list:
+        nationality = mp.get(catalog['artistIds'], artistId)['value']['Nationality']
+        if mp.contains(catalog['nationalityIds'], nationality) == False:
+            mp.put(catalog['nationalityIds'], nationality, newArtworkNationality(nationality, artwork))     
+        else:
+            artworks_list_nationality = me.getValue(mp.get(catalog['nationalityIds'], nationality))['artworks']
+            lt.addLast(artworks_list_nationality, artwork)
+            me.getValue(mp.get(catalog['nationalityIds'], nationality))['total_artworks'] += 1
 
 # Funciones para creacion de datos
 
 # Funciones de consulta
 
 def artworksSize(catalog):
-    """
-    Numero de obras cargados al catalogo
-    """
     return mp.size(catalog['artworks'])
 
+def artistsSize(catalog):
+    return mp.size(catalog['artists'])
+
+def mediumsSize(catalog):
+    return mp.size(catalog['mediumIds'])
+
+def nationalitiesSize(catalog):
+    return mp.size(catalog['nationalityIds'])
+
+def getArtworksByNationality(catalog, nationality, num_artworks):
+    nationality_artworks = mp.get(catalog['nationalityIds'], nationality)['value']['artworks'].copy()
+    num_nationality = mp.get(catalog['nationalityIds'],nationality)['value']['total_artworks']
+    sublist_nationality_artworks = lt.subList(nationality_artworks, num_nationality - num_artworks, num_artworks)
+    return sublist_nationality_artworks, num_nationality
+
+def GetConstituentIDListArtwork(artwork):
+    ID = artwork['ConstituentID']
+    artwork_constituent_IDs = ID.strip(ID[0]).strip(ID[-1]).split(', ')
+    return artwork_constituent_IDs
 
 # Funciones utilizadas para comparar elementos dentro de una lista
 
-def getArtworksByMedium(artworkIds, medium):
-    medium_artworks = mp.newMap(1600,
-                                   maptype='PROBING',
-                                   loadfactor=0.5)
-    for artwork in artworkIds:
-        artwork_medium = me.getValue(artwork)['Medium']
-        if artwork_medium == medium:
-            artwork_Id = me.getValue(artwork)['ObjectID']
-            mp.put(medium_artworks,artwork_Id,artwork)
-    return medium_artworks
-
-def getnOlderArtworks(medium_artworks,num_artworks):
-    return None
-
-
 # Funciones de ordenamiento
+
+def getOlderArtworksByMedium(catalog, medium, num_artworks):
+    medium_artworks = mp.get(catalog['mediumIds'],medium)['value']['artworks'].copy()
+    merge.sort(medium_artworks, cmpDateArtworks)
+    older_medium_artworks = lt.subList(medium_artworks, lt.size(medium_artworks) - num_artworks, num_artworks)
+    return older_medium_artworks
 
 # Funciones de Comparación
 
-def compareArtworkIds(id1, id2):
+def compareArtworkandArtistIds(id1, id2):
     """
     Compara dos ids de dos libros
     """
@@ -151,7 +158,7 @@ def compareArtworkIds(id1, id2):
     else:
         return -1
 
-def compareMapArtworkIds(id, entry):
+def compareMapArtworkandArtistIds(id, entry):
     """
     Compara dos ids de obras, id es un identificador
     y entry una pareja llave-valor
@@ -163,3 +170,13 @@ def compareMapArtworkIds(id, entry):
         return 1
     else:
         return -1
+
+def cmpDateArtworks(artwork1, artwork2):
+    artwork1_date = artwork1['Date']
+    artwork2_date = artwork2['Date']
+    if artwork1_date == '':
+        artwork1_date = 0
+    if artwork2_date == '':
+        artwork2_date = 0 
+ 
+    return artwork1_date > artwork2_date

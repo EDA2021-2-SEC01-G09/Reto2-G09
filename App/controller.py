@@ -21,6 +21,9 @@
  """
 
 import config as cf
+from DISClib.ADT import list as lt
+from DISClib.ADT import map as mp
+from DISClib.DataStructures import mapentry as me
 import model
 import csv
 
@@ -40,36 +43,60 @@ def initCatalog():
 
 # Funciones para la carga de datos
 
-
 def loadData(catalog):
     """
     Carga los datos de los archivos y cargar los datos en la
     estructura de datos
     """
     loadArtworks(catalog)
+    loadArtists(catalog)
+    loadMediums(catalog)
+    loadNationalities(catalog)
 
 def loadArtworks(catalog):
-    """
-    Carga los libros del archivo.  Por cada libro se indica al
-    modelo que debe adicionarlo al catalogo.
-    """
     artworksfile = cf.data_dir + 'MoMA/Artworks-utf8-small.csv'
     input_file = csv.DictReader(open(artworksfile, encoding='utf-8'))
     for artwork in input_file:
         model.addArtwork(catalog, artwork)
 
+def loadArtists(catalog):
+    artworksfile = cf.data_dir + 'MoMA/Artists-utf8-small.csv'
+    input_file = csv.DictReader(open(artworksfile, encoding='utf-8'))
+    for artwork in input_file:
+        model.addArtist(catalog, artwork)
+
+def loadMediums(catalog):
+    for artwork in lt.iterator(catalog['artworks']):
+        medium = artwork['Medium']
+        model.addMedium(catalog, medium, artwork)
+
+def loadNationalities(catalog):
+    for artwork in lt.iterator(catalog['artworks']):
+        artistIds_list = GetConstituentIDListArtwork(artwork)
+        model.addNationality(catalog, artistIds_list, artwork)
+
+
 # Funciones de ordenamiento
+
+def getOlderArtworksByMedium(catalog, medium, num_artworks):
+    return model.getOlderArtworksByMedium(catalog, medium, num_artworks)
+
+def getArtworksByNationality(catalog, nationality, num_artworks):
+    return model.getArtworksByNationality(catalog, nationality, num_artworks)
 
 # Funciones de consulta sobre el catálogo
 
 def artworksSize(catalog):
-    """
-    Numero de libros cargados al catalogo
-    """
     return model.artworksSize(catalog)
 
-def getArtworksByMedium(artworkIds, medium):
-    '''
-    Obras de arte del medium dado por parámetro
-    '''
-    return model.getArtworksByMedium(artworkIds, medium)
+def artistsSize(catalog):
+    return model.artistsSize(catalog)
+
+def mediumsSize(catalog):
+    return model.mediumsSize(catalog)
+    
+def nationalitiesSize(catalog):
+    return model.nationalitiesSize(catalog)
+
+def GetConstituentIDListArtwork(artwork):
+    return model.GetConstituentIDListArtwork(artwork)

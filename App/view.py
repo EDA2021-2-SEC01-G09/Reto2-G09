@@ -24,6 +24,7 @@ import config as cf
 import sys
 import controller
 from DISClib.ADT import list as lt
+import time
 assert cf
 
 
@@ -38,9 +39,16 @@ def printMenu():
     print("Bienvenido")
     print("1- Cargar información en el catálogo")
     print("2- Las n obras más antiguas para un medio específico")
-    print("3- ")
+    print('3- Las n obras de una nacionalidad específica')
+    print("4- ")
+    print('5- Salir')
 
 catalog = None
+
+def printOlderArtworksByMedium(older_medium_artworks):
+    for artwork in lt.iterator(older_medium_artworks):
+        print('Título: ' + artwork['Title'] + ', Fecha de creación: ' + artwork['Date'] + 
+                ', Medio '+ artwork['Medium'] + ', Dimensiones: ' + artwork['Dimensions'])
 
 """
 Menu principal
@@ -49,19 +57,29 @@ while True:
     printMenu()
     inputs = input('Seleccione una opción para continuar\n')
     if int(inputs[0]) == 1:
+        start_time = time.process_time()
         print("Cargando información de los archivos ....")
         catalog = controller.initCatalog()
         controller.loadData(catalog)
         print('Obras cargadas: ' + str(controller.artworksSize(catalog)))
+        print('Artistas cargados: ' + str(controller.artistsSize(catalog)))
+        print('Técnicas registradas: ' + str(controller.mediumsSize(catalog)))
+        print('Nacionalidades registradas: ' + str(controller.nationalitiesSize(catalog)))
+        stop_time = time.process_time()
+        elapsed_time_mseg = elapsed_time_mseg = (stop_time - start_time)*1000  
+        print('Los datos tardaron:', elapsed_time_mseg, 'mseg en cargar.' )
 
     elif int(inputs[0]) == 2:
-        sample_size = input('Tamaño de muestra: ')
         medium = input('Ingrese el medio: ')
-        num_artworks = input('Ingrese el número de obras más antiguas: ')
-        artworkIds = catalog['artworkIds']
-        medium_artworks = controller.getArtworksByMedium(catalog, artworkIds, medium)
-        old_artworks = controller.getnOlderArtworks(medium_artworks, num_artworks)
-        printnOlderArtworksbyMedium(old_artworks)
+        num_artworks = int(input('Ingrese el número de obras más antiguas que desea ver: '))
+        older_medium_artworks = controller.getOlderArtworksByMedium(catalog, medium, num_artworks)
+        printOlderArtworksByMedium(older_medium_artworks)
+    elif int(inputs[0]) == 3:
+        nationality = input('Ingrese la nacionalidad: ')
+        #num_artworks =int(input('Ingrese el número de obras de la nacionalidad que desea ver: '))
+        num_artworks = 10
+        nationality_artworks = controller.getArtworksByNationality(catalog, nationality, num_artworks)
+        print('Existen', nationality_artworks[1], 'obras de arte de la nacionalidad indicada')
     else:
         sys.exit(0)
 sys.exit(0)
