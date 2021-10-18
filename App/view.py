@@ -24,62 +24,89 @@ import config as cf
 import sys
 import controller
 from DISClib.ADT import list as lt
-import time
 assert cf
 
+###########################################################################################
+#Funciones de exposición de resultados
+###########################################################################################
 
-"""
-La vista se encarga de la interacción con el usuario
-Presenta el menu de opciones y por cada seleccion
-se hace la solicitud al controlador para ejecutar la
-operación solicitada
-"""
+def printRequirement1(requirement_list):
+    num_artists = lt.size(requirement_list)
+    first_artists = lt.subList(requirement_list, 1, 3)
+    last_artists = lt.subList(requirement_list, num_artists - 3, 3)
+    print('Los primeros 3 artistas del rango de años son:')
+    for artist in lt.iterator(first_artists):
+        print('Nombre: ' + artist['DisplayName'] + ', Año de nacimiento: ' +  artist['BeginDate'] + 
+                    ', Año de fallecimiento: ' + artist['EndDate'] + ', Nacionalidad: '+ artist['Nationality'] + 
+                    ', Genero: ' + artist['Gender'])
+    print('')
+    print('Los últimos 3 artistas del rango de años son:')
+    for artist in lt.iterator(last_artists):
+        print('Nombre: ' + artist['DisplayName'] + ', Año de nacimiento: ' +  artist['BeginDate'] + 
+                    ', Año de fallecimiento: ' + artist['EndDate'] + ', Nacionalidad: '+ artist['Nationality'] + 
+                    ', Genero: ' + artist['Gender'])
+
+###########################################################################################
+#Menu principal
+###########################################################################################
 
 def printMenu():
-    print("Bienvenido")
-    print("1- Cargar información en el catálogo")
-    print("2- Las n obras más antiguas para un medio específico")
-    print('3- Las n obras de una nacionalidad específica')
-    print("4- ")
-    print('5- Salir')
+    print('Bienvenido')
+    print('1- Cargar información en el catálogo')
+    print('2- Elegir algorítmo de ordenamiento')
+    print('3- REQ. 1: listar cronológicamente los artistas')
+    print('4- ')
+    print('0- Salir')
 
 catalog = None
 
-def printOlderArtworksByMedium(older_medium_artworks):
-    for artwork in lt.iterator(older_medium_artworks):
-        print('Título: ' + artwork['Title'] + ', Fecha de creación: ' + artwork['Date'] + 
-                ', Medio '+ artwork['Medium'] + ', Dimensiones: ' + artwork['Dimensions'])
-
-"""
-Menu principal
-"""
 while True:
     printMenu()
     inputs = input('Seleccione una opción para continuar\n')
     if int(inputs[0]) == 1:
-        start_time = time.process_time()
-        print("Cargando información de los archivos ....")
-        catalog = controller.initCatalog()
-        controller.loadData(catalog)
-        print('Obras cargadas: ' + str(controller.artworksSize(catalog)))
-        print('Artistas cargados: ' + str(controller.artistsSize(catalog)))
-        print('Técnicas registradas: ' + str(controller.mediumsSize(catalog)))
-        print('Nacionalidades registradas: ' + str(controller.nationalitiesSize(catalog)))
-        stop_time = time.process_time()
-        elapsed_time_mseg = elapsed_time_mseg = (stop_time - start_time)*1000  
-        print('Los datos tardaron:', elapsed_time_mseg, 'mseg en cargar.' )
+        print('Existen 1948 artistas y 768 obras de arte en los archivos')
+        artists_sample_size = int(input('Elija la cantidad de artistas que desea cargar: '))
+        artworks_sample_size = int(input('Elija la cantidad de obras de arte que desea cargar: '))
+        print('')
+        print('Las estructuras de datos disponibles para cargar los datos son: ')
+        print('1- Lista encadenada')
+        print('2- Lista ordenada')
+        data_structure = controller.getDataStructure(int(input('Elija la estructura de datos: ')))
+        print("Cargando información de los archivos ...")
+
+        initialization_results = controller.initCatalog(data_structure)
+        catalog = initialization_results[2]
+        loading_data_results = controller.loadData(catalog, data_structure, 
+                                                    artists_sample_size, artworks_sample_size)
+        total_elapsed_time = initialization_results[0] + loading_data_results[0]
+        average_RAM_usage = (initialization_results[1] + loading_data_results[1])/2
+        print('Información de carga: ')
+        print('Tiempo empleado:', total_elapsed_time, 'mseg')
+        print('Memoria RAM utilizada:', average_RAM_usage, 'porciento')
 
     elif int(inputs[0]) == 2:
-        medium = input('Ingrese el medio: ')
-        num_artworks = int(input('Ingrese el número de obras más antiguas que desea ver: '))
-        older_medium_artworks = controller.getOlderArtworksByMedium(catalog, medium, num_artworks)
-        printOlderArtworksByMedium(older_medium_artworks)
+        print('Algoritmos de ordenamiento disponibles: ')
+        print('1) Insertion Sort')
+        print('2) Shell Sort')
+        print('3) Merge Sort')
+        print('4) Quick Sort')
+        sorting_method = input('Ingrese el algoritmo elegido: ')
+
     elif int(inputs[0]) == 3:
-        nationality = input('Ingrese la nacionalidad: ')
-        #num_artworks =int(input('Ingrese el número de obras de la nacionalidad que desea ver: '))
-        num_artworks = 10
-        nationality_artworks = controller.getArtworksByNationality(catalog, nationality, num_artworks)
-        print('Existen', nationality_artworks[1], 'obras de arte de la nacionalidad indicada')
+        initial_birth_year = int(input('Ingrese el primer año del intervalo: '))
+        end_birth_year = int(input('Ingrese el último año del intervalo: '))
+        print('Procesando...')
+        requirement_info = controller.getArtistsByBirthYear(catalog, data_structure,
+                                                            initial_birth_year, end_birth_year)
+        elapsed_time = requirement_info[0]
+        RAM_usage = requirement_info[1]
+        print('')
+        print('Información de carga: ')
+        print('Tiempo empleado:', elapsed_time, 'mseg')
+        print('Memoria RAM utilizada:', RAM_usage, 'porciento')
+        print('')
+        requirement_list = requirement_info[2]
+        printRequirement1(requirement_list)
     else:
         sys.exit(0)
 sys.exit(0)

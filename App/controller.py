@@ -26,77 +26,84 @@ from DISClib.ADT import map as mp
 from DISClib.DataStructures import mapentry as me
 import model
 import csv
+import time
+#import psutil
 
-
-"""
-El controlador se encarga de mediar entre la vista y el modelo.
-"""
-
+###########################################################################################
 # Inicialización del Catálogo de libros
-def initCatalog():
-    """
-    Llama la funcion de inicializacion del catalogo del modelo.
-    """
-    catalog = model.newCatalog()
-    return catalog
+###########################################################################################
 
+def initCatalog(data_structure):
+    start_time = time.process_time()
 
+    catalog = model.newCatalog(data_structure)
+
+    stop_time = time.process_time()
+    elapsed_time = (stop_time - start_time)*1000  
+    #RAM_usage = psutil.virtual_memory()[2]
+    RAM_usage = 0
+    return elapsed_time, RAM_usage, catalog
+
+###########################################################################################
 # Funciones para la carga de datos
+###########################################################################################
 
-def loadData(catalog):
-    """
-    Carga los datos de los archivos y cargar los datos en la
-    estructura de datos
-    """
-    loadArtworks(catalog)
-    loadArtists(catalog)
-    loadMediums(catalog)
-    loadNationalities(catalog)
+def loadData(initiation_data, data_structure, artists_sample_size, artworks_sample_size):
+    start_time = time.process_time()
 
-def loadArtworks(catalog):
+    loadArtistsRelatedData(initiation_data, data_structure, artists_sample_size)
+    loadArtworksRelatedData(initiation_data, data_structure, artworks_sample_size)
+    
+    stop_time = time.process_time()
+    elapsed_time = (stop_time - start_time)*1000  
+    #RAM_usage = psutil.virtual_memory()[2]
+    RAM_usage = 0
+    return elapsed_time, RAM_usage
+
+###########################################################################################
+
+def loadArtistsRelatedData(catalog, data_structure, sample_size):
+    artistsfile = cf.data_dir + 'MoMA/Artists-utf8-small.csv'
+    input_file = csv.DictReader(open(artistsfile, encoding='utf-8'))
+    artists_info = list(input_file)[:sample_size]
+    for artist in artists_info:
+        model.addArtist(catalog, artist, data_structure)
+        model.addBirthYearArtist(catalog, artist, data_structure)
+    
+###########################################################################################
+
+def loadArtworksRelatedData(catalog, data_structure, sample_size):
     artworksfile = cf.data_dir + 'MoMA/Artworks-utf8-small.csv'
     input_file = csv.DictReader(open(artworksfile, encoding='utf-8'))
-    for artwork in input_file:
+    artworks_info = list(input_file)[:sample_size]
+    for artwork in artworks_info:
         model.addArtwork(catalog, artwork)
+        model.addAdquisitionYear(catalog, artwork, data_structure)
+        model.addMedium(catalog, artwork, data_structure)
+        model.addNationality(catalog, artwork, data_structure)
+        model.addDepartment(catalog, artwork, data_structure)
 
-def loadArtists(catalog):
-    artworksfile = cf.data_dir + 'MoMA/Artists-utf8-small.csv'
-    input_file = csv.DictReader(open(artworksfile, encoding='utf-8'))
-    for artwork in input_file:
-        model.addArtist(catalog, artwork)
-
-def loadMediums(catalog):
-    for artwork in lt.iterator(catalog['artworks']):
-        medium = artwork['Medium']
-        model.addMedium(catalog, medium, artwork)
-
-def loadNationalities(catalog):
-    for artwork in lt.iterator(catalog['artworks']):
-        artistIds_list = GetConstituentIDListArtwork(artwork)
-        model.addNationality(catalog, artistIds_list, artwork)
-
-
+###########################################################################################
 # Funciones de ordenamiento
+###########################################################################################
 
-def getOlderArtworksByMedium(catalog, medium, num_artworks):
-    return model.getOlderArtworksByMedium(catalog, medium, num_artworks)
-
-def getArtworksByNationality(catalog, nationality, num_artworks):
-    return model.getArtworksByNationality(catalog, nationality, num_artworks)
-
+###########################################################################################
 # Funciones de consulta sobre el catálogo
+###########################################################################################
 
-def artworksSize(catalog):
-    return model.artworksSize(catalog)
+def getDataStructure(data_structure):
+    return model.getDataStructure(data_structure)
 
-def artistsSize(catalog):
-    return model.artistsSize(catalog)
+###########################################################################################
 
-def mediumsSize(catalog):
-    return model.mediumsSize(catalog)
-    
-def nationalitiesSize(catalog):
-    return model.nationalitiesSize(catalog)
+def getArtistsByBirthYear(catalog, data_structure, initial_birth_year, end_birth_year):
+    start_time = time.process_time()
 
-def GetConstituentIDListArtwork(artwork):
-    return model.GetConstituentIDListArtwork(artwork)
+    requirement_list = model.getArtistsByBirthYear(catalog, data_structure,
+                                                     initial_birth_year, end_birth_year)
+
+    stop_time = time.process_time()
+    elapsed_time = (stop_time - start_time)*1000  
+    #RAM_usage = psutil.virtual_memory()[2]
+    RAM_usage = 0
+    return elapsed_time, RAM_usage, requirement_list
