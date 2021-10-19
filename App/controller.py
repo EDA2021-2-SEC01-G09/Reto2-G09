@@ -85,6 +85,11 @@ def requirement3Info(requirement_list):
     return model.requirement3Info(requirement_list)
 
 ###########################################################################################
+
+def requirement4Info(requirement_list_artworks, requirement_list_nationalities):
+    return model.requirement4Info(requirement_list_artworks, requirement_list_nationalities)
+
+###########################################################################################
 # Funciones de consulta sobre el catálogo
 ###########################################################################################
 
@@ -135,3 +140,16 @@ def getArtworksByMediumAndArtist(catalog, artist_name):
     stop_time = time.process_time()
     elapsed_time = (stop_time - start_time)*1000  
     return elapsed_time, requirement_list, num_total_artworks, name_most_used_medium
+
+###########################################################################################
+
+def getNationalitiesByNumArtworks(catalog, data_structure, sorting_method):
+    start_time = time.process_time()
+
+    requirement_info = model.getNationalitiesByNumArtworks(catalog, data_structure, sorting_method)
+    requirement_list_artworks = requirement_info[0]
+    requirement_list_nationalities = requirement_info[1]
+
+    stop_time = time.process_time()
+    elapsed_time = (stop_time - start_time)*1000  
+    return elapsed_time, requirement_list_artworks, requirement_list_nationalities

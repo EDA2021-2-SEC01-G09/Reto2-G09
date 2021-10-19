@@ -136,7 +136,7 @@ def addMedium(catalog, artwork, data_structure):
 
 def addNationality(catalog, artwork, data_structure):
     nationalities_map = catalog['nationalities']
-    nationalities_map_keys_list = catalog['nationalities_keys']
+    nationalities_keys_list = catalog['nationalities_keys']
     artists_Ids_list = GetConstituentIDList(artwork['ConstituentID'])
     for artist_Id in artists_Ids_list:
         nationality = me.getValue(mp.get(catalog['artists_Ids'], artist_Id))['info']['Nationality']
@@ -146,7 +146,7 @@ def addNationality(catalog, artwork, data_structure):
             nationality_list = lt.newList(data_structure)
             lt.addLast(nationality_list, artwork)
             mp.put(nationalities_map, nationality, nationality_list)
-            lt.addLast(nationalities_map_keys_list, nationality)
+            lt.addLast(nationalities_keys_list, nationality)
 
 ###########################################################################################
 
@@ -223,7 +223,7 @@ def getArtworksByAdquisitonDate(catalog, data_structure, sorting_method,
             if date <= end_adquisition_date_in_days:
                 lt.addLast(date_adquired_artworks_list, artwork)
 
-    SortingMethodExecution(sorting_method, date_adquired_artworks_list, cmpArtworkByDateAcquired)
+    SortingMethodExecution(sorting_method, date_adquired_artworks_list, cmpArtworksByDateAcquired)
 
     return date_adquired_artworks_list
 
@@ -245,6 +245,19 @@ def getArtworksByMediumAndArtist(catalog, artist_name):
             name_more_artworks = medium_name
             list_more_artworks = medium_artworks
     return list_more_artworks, num_more_artworks, name_more_artworks
+
+###########################################################################################
+
+def getNationalitiesByNumArtworks(catalog, data_structure, sorting_method):
+    nationalities_names_list = catalog['nationalities_keys']
+    num_nationalities_list = lt.newList(data_structure)
+    for nationality in lt.iterator(nationalities_names_list):
+        num_artworks = lt.size(me.getValue(mp.get(catalog['nationalities'], nationality)))
+        lt.addLast(num_nationalities_list, (nationality, num_artworks))
+    SortingMethodExecution(sorting_method, num_nationalities_list, cmpNationalityByNumArtworks)
+    major_nationality_name = lt.getElement(num_nationalities_list, 1)[0]
+    major_nationality_artworks_list = me.getValue(mp.get(catalog['nationalities'], major_nationality_name))
+    return major_nationality_artworks_list, num_nationalities_list
 
 ###########################################################################################
 # Funciones utilizadas para comparar elementos dentro de una lista
@@ -333,11 +346,26 @@ def requirement3Info(requirement_list):
     return num_artworks_medium, first_artworks, last_artworks
 
 ###########################################################################################
+
+def requirement4Info(requirement_list_artworks, requirement_list_nationalities):
+    num_more_artworks_nationality = lt.size(requirement_list_artworks)
+    first_artworks = lt.subList(requirement_list_artworks, 1, 3)
+    last_artworks = lt.subList(requirement_list_artworks, num_more_artworks_nationality - 2, 3)
+    first_nationalities = lt.subList(requirement_list_nationalities, 1, 10)
+    return first_artworks, last_artworks, first_nationalities
+
+###########################################################################################
 # Funciones de Comparación
 ###########################################################################################
 
-def cmpArtworkByDateAcquired(artwork1, artwork2): 
+def cmpArtworksByDateAcquired(artwork1, artwork2): 
     date_acquired_artwork_1 = TransformationDateToDays(artwork1['DateAcquired'])
     date_acquired_artwork_2 = TransformationDateToDays(artwork2['DateAcquired'])
     return date_acquired_artwork_1 > date_acquired_artwork_2
 
+###########################################################################################
+
+def cmpNationalityByNumArtworks(nationality_1, nationality_2):
+    num_artworks_nationality_1 = nationality_1[1]
+    num_artworks_nationality_2 = nationality_2[1]
+    return num_artworks_nationality_1 > num_artworks_nationality_2

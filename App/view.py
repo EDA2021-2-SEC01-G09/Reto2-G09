@@ -104,6 +104,45 @@ def printRequirement3(requirement_list, num_total_artworks, name_most_used_mediu
                  ', Medio '+ artwork['Medium'] + ', Dimensiones: ' + artwork['Dimensions'])
 
 ###########################################################################################
+
+def printRequirement4(requirement_list_artworks, requirement_list_nationalities):
+    requirement_info = controller.requirement4Info(requirement_list_artworks, requirement_list_nationalities)
+    first_artworks = requirement_info[0]
+    last_artworks = requirement_info[1]
+    first_nationalities = requirement_info[2]
+
+    print('Las primeras 10 nacionalidades por número de obras son: ')
+    print('{:<20}{:<20}'.format('Nacionalidad', 'Número de obras'))
+    for nationality in lt.iterator(first_nationalities):
+        num_artworks_nationality = nationality[1]
+        nationality_name = nationality[0]
+        if nationality_name == '':
+                nationality_name = 'Desconocida'
+        print('{:<20}{:<20}'.format(nationality_name, num_artworks_nationality))
+    print('')
+    print('Las primeras 3 obras de la nacionalidad con más obras son:')
+    for artwork in lt.iterator(first_artworks):
+        authors = ''
+        for author_Id in controller.GetConstituentIDList(artwork['ConstituentID']):
+            author_name = me.getValue(mp.get(catalog['artists_Ids'], author_Id))['info']['DisplayName']
+            authors += ' ,' + author_name
+        authors = authors[2:]
+        print('Título: ' + artwork['Title'] + ', Artista(s): ' +  authors + 
+                    ', Fecha de creación: ' + artwork['Date'] + ', Medio '+ artwork['Medium'] + 
+                    ', Dimensiones: ' + artwork['Dimensions'])
+    print('')
+    print('Las últimas 3 obras de la nacionalidad con más obras son:')
+    for artwork in lt.iterator(last_artworks):
+        authors = ''
+        for author_Id in controller.GetConstituentIDList(artwork['ConstituentID']):
+            author_name = me.getValue(mp.get(catalog['artists_Ids'], author_Id))['info']['DisplayName']
+            authors += ' ,' + author_name
+        authors = authors[2:]
+        print('Título: ' + artwork['Title'] + ', Artista(s): ' +  authors + 
+                    ', Fecha de creación: ' + artwork['Date'] + ', Medio '+ artwork['Medium'] + 
+                    ', Dimensiones: ' + artwork['Dimensions'])
+
+###########################################################################################
 #Menu principal
 ###########################################################################################
 
@@ -114,6 +153,7 @@ def printMenu():
     print('2- REQ. 1: listar cronológicamente los artistas')
     print('3- REQ. 2: listar cronológicamente las adquisiciones')
     print('4- REQ. 3: clasificar las obras de un artista por técnica')
+    print('5- REQ. 4: clasificar las obras por la nacionalidad de sus creadores')
     print('0- Salir')
 
 ###########################################################################################
@@ -190,7 +230,19 @@ while True:
         name_most_used_medium = requirement_info[3]
         printRequirement3(requirement_list, num_total_artworks, name_most_used_medium)
 
+    elif int(inputs[0]) == 5:
+        print('')
+        sorting_method = SortingAlgorithmOptions()
+        print('Procesando...')
+        requirement_info = controller.getNationalitiesByNumArtworks(catalog, data_structure, sorting_method)
+        elapsed_time = requirement_info[0]
+        print('')
+        print('Tiempo empleado:', elapsed_time, 'mseg')
+        print('')
+        requirement_list_artworks = requirement_info[1]
+        requirement_list_nationalities = requirement_info[2]
+        printRequirement4(requirement_list_artworks, requirement_list_nationalities) 
+
     else:
         sys.exit(0)
 sys.exit(0)
-
