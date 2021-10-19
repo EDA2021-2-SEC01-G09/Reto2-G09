@@ -1,8 +1,10 @@
 import model
 import math
 import config as cf
+import psutil
 import csv
 assert cf
+print('RAM memory used:', psutil.virtual_memory()[2])
 
 artistsfile = cf.data_dir + 'MoMA/Artists-utf8-small.csv'
 artworksfile = cf.data_dir + 'MoMA/Artworks-utf8-small.csv'

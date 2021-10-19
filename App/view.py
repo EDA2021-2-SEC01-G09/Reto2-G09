@@ -53,7 +53,7 @@ def printRequirement1(requirement_list):
 
 ###########################################################################################
 
-def printRequirement2(requirement_list, num_purchased_artworks, catalog):
+def printRequirement2(catalog, requirement_list, num_purchased_artworks):
     requirement_info = controller.requirement2Info(requirement_list)
     num_artworks = requirement_info[0]
     first_artworks = requirement_info[1]
@@ -63,23 +63,15 @@ def printRequirement2(requirement_list, num_purchased_artworks, catalog):
     print('')
     print('Las primeras 3 obras de arte del rango de fechas son:')
     for artwork in lt.iterator(first_artworks):
-        authors = ''
-        for author_Id in controller.GetConstituentIDList(artwork['ConstituentID']):
-            author_name = me.getValue(mp.get(catalog['artists_Ids'], author_Id))['info']['DisplayName']
-            authors += ' ,' + author_name
-        authors = authors[2:]
-        print('Título: ' + artwork['Title'] + ', Artista(s): ' +  authors + 
+        artists = controller.getArtistsListInStr(catalog, artwork)
+        print('Título: ' + artwork['Title'] + ', Artista(s): ' +  artists + 
                     ', Fecha de adquisición: ' + artwork['DateAcquired'] + ', Medio '+ artwork['Medium'] + 
                     ', Dimensiones: ' + artwork['Dimensions'])
     print('')
     print('Las últimas 3 obras de arte del rango de fechas son:')
     for artwork in lt.iterator(last_artworks):
-        authors = ''
-        for author_Id in controller.GetConstituentIDList(artwork['ConstituentID']):
-            author_name = me.getValue(mp.get(catalog['artists_Ids'], author_Id))['info']['DisplayName']
-            authors += ' ,' + author_name
-        authors = authors[2:]
-        print('Título: ' + artwork['Title'] + ', Artista(s): ' +  authors + 
+        artists = controller.getArtistsListInStr(catalog, artwork)
+        print('Título: ' + artwork['Title'] + ', Artista(s): ' +  artists + 
                     ', Fecha de adquisición: ' + artwork['DateAcquired'] + ', Medio '+ artwork['Medium'] + 
                     ', Dimensiones: ' + artwork['Dimensions'])
 
@@ -105,12 +97,11 @@ def printRequirement3(requirement_list, num_total_artworks, name_most_used_mediu
 
 ###########################################################################################
 
-def printRequirement4(requirement_list_artworks, requirement_list_nationalities):
+def printRequirement4(catalog, requirement_list_artworks, requirement_list_nationalities):
     requirement_info = controller.requirement4Info(requirement_list_artworks, requirement_list_nationalities)
     first_artworks = requirement_info[0]
     last_artworks = requirement_info[1]
     first_nationalities = requirement_info[2]
-
     print('Las primeras 10 nacionalidades por número de obras son: ')
     print('{:<20}{:<20}'.format('Nacionalidad', 'Número de obras'))
     for nationality in lt.iterator(first_nationalities):
@@ -122,25 +113,48 @@ def printRequirement4(requirement_list_artworks, requirement_list_nationalities)
     print('')
     print('Las primeras 3 obras de la nacionalidad con más obras son:')
     for artwork in lt.iterator(first_artworks):
-        authors = ''
-        for author_Id in controller.GetConstituentIDList(artwork['ConstituentID']):
-            author_name = me.getValue(mp.get(catalog['artists_Ids'], author_Id))['info']['DisplayName']
-            authors += ' ,' + author_name
-        authors = authors[2:]
-        print('Título: ' + artwork['Title'] + ', Artista(s): ' +  authors + 
+        artists = controller.getArtistsListInStr(catalog, artwork)
+        print('Título: ' + artwork['Title'] + ', Artista(s): ' +  artists + 
                     ', Fecha de creación: ' + artwork['Date'] + ', Medio '+ artwork['Medium'] + 
                     ', Dimensiones: ' + artwork['Dimensions'])
     print('')
     print('Las últimas 3 obras de la nacionalidad con más obras son:')
     for artwork in lt.iterator(last_artworks):
-        authors = ''
-        for author_Id in controller.GetConstituentIDList(artwork['ConstituentID']):
-            author_name = me.getValue(mp.get(catalog['artists_Ids'], author_Id))['info']['DisplayName']
-            authors += ' ,' + author_name
-        authors = authors[2:]
-        print('Título: ' + artwork['Title'] + ', Artista(s): ' +  authors + 
+        artists = controller.getArtistsListInStr(catalog, artwork)
+        print('Título: ' + artwork['Title'] + ', Artista(s): ' +  artists + 
                     ', Fecha de creación: ' + artwork['Date'] + ', Medio '+ artwork['Medium'] + 
                     ', Dimensiones: ' + artwork['Dimensions'])
+
+###########################################################################################
+
+def printRequirement5(catalog, requirement_list_by_date, requirement_list_by_price, total_cost, total_weight):
+    requirement_info = controller.requirement5Info(requirement_list_by_date, requirement_list_by_price)
+    num_artworks = requirement_info[0]
+    oldest_artworks = requirement_info[1]
+    most_expensive_artworks = requirement_info[2]
+    print('Existen', num_artworks, 'obras de arte en el departamento')
+    print('El costo total de transporte de las obras de arte del departamento es', round(total_cost, 2), 'USD.')
+    print('El peso total de las obras del departamento es', round(total_weight, 2), 'Kg.')
+    print('')
+    print('Las 5 obras de arte más costosas de transportar eson:')
+    for artwork in lt.iterator(most_expensive_artworks):
+        artwork_info = artwork[0]
+        artwork_cost = artwork[1]
+        artists = controller.getArtistsListInStr(catalog, artwork_info)
+        print('Título: ' + artwork_info['Title'] + ', Artista(s): ' +  artists + 
+                    ', Fecha de creación: ' + artwork_info['Date'] + ', Medio '+ artwork_info['Medium'] + 
+                    ', Dimensiones: ' + artwork_info['Dimensions'] + ', Costo de transporte: ' +
+                    str(round(artwork_cost, 2)) + ' USD')
+    print('')
+    print('Las 5 obras más antiguas del departamento son:')
+    for artwork in lt.iterator(oldest_artworks):
+        artwork_info = artwork[0]
+        artwork_cost = artwork[1]
+        artists = controller.getArtistsListInStr(catalog, artwork_info)
+        print('Título: ' + artwork_info['Title'] + ', Artista(s): ' +  artists + 
+                    ', Fecha de creación: ' + artwork_info['Date'] + ', Medio '+ artwork_info['Medium'] + 
+                    ', Dimensiones: ' + artwork_info['Dimensions'] + ', Costo de transporte: ' + 
+                    str(round(artwork_cost, 2)) + ' USD')
 
 ###########################################################################################
 #Menu principal
@@ -154,6 +168,8 @@ def printMenu():
     print('3- REQ. 2: listar cronológicamente las adquisiciones')
     print('4- REQ. 3: clasificar las obras de un artista por técnica')
     print('5- REQ. 4: clasificar las obras por la nacionalidad de sus creadores')
+    print('6- REQ. 5: transportar obras de un departamento')
+    print('7- REQ. 6: Encontrar los artistas más prolíficos del museo')
     print('0- Salir')
 
 ###########################################################################################
@@ -214,7 +230,7 @@ while True:
         print('')
         requirement_list = requirement_info[1]    
         num_purchased_artworks = requirement_info[2]                         
-        printRequirement2(requirement_list, num_purchased_artworks, catalog)
+        printRequirement2(catalog, requirement_list, num_purchased_artworks, catalog)
 
     elif int(inputs[0]) == 4:
         artist_name = input('Ingrese el nombre del artista: ')
@@ -241,8 +257,24 @@ while True:
         print('')
         requirement_list_artworks = requirement_info[1]
         requirement_list_nationalities = requirement_info[2]
-        printRequirement4(requirement_list_artworks, requirement_list_nationalities) 
+        printRequirement4(catalog, requirement_list_artworks, requirement_list_nationalities) 
 
+    elif int(inputs[0]) == 6:  
+        department = input('Ingrese el nombre del departamento: ')
+        print('')
+        sorting_method = SortingAlgorithmOptions()
+        print('Procesando...')
+        requirement_info = controller.getTransportationCostByDepartment(catalog, data_structure, 
+                                                                            sorting_method, department)
+        elapsed_time = requirement_info[0]
+        print('')
+        print('Tiempo empleado:', elapsed_time, 'mseg')
+        print('')
+        requirement_list_by_date = requirement_info[1]
+        requirement_list_by_price = requirement_info[2]
+        total_cost = requirement_info[3]
+        total_weight = requirement_info[4]
+        printRequirement5(catalog, requirement_list_by_date, requirement_list_by_price, total_cost, total_weight) 
     else:
         sys.exit(0)
 sys.exit(0)

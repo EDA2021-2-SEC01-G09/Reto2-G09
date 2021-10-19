@@ -90,6 +90,11 @@ def requirement4Info(requirement_list_artworks, requirement_list_nationalities):
     return model.requirement4Info(requirement_list_artworks, requirement_list_nationalities)
 
 ###########################################################################################
+
+def requirement5Info(requirement_list_by_date, requirement_list_by_price):
+    return model.requirement5Info(requirement_list_by_date, requirement_list_by_price)
+
+###########################################################################################
 # Funciones de consulta sobre el catálogo
 ###########################################################################################
 
@@ -98,8 +103,8 @@ def getDataStructure(data_structure):
 
 ###########################################################################################
 
-def GetConstituentIDList(Ids_list):
-    return model.GetConstituentIDList(Ids_list)
+def getArtistsListInStr(catalog, artwork):
+    return model.getArtistsListInStr(catalog, artwork)
 
 ###########################################################################################
 
@@ -153,3 +158,19 @@ def getNationalitiesByNumArtworks(catalog, data_structure, sorting_method):
     stop_time = time.process_time()
     elapsed_time = (stop_time - start_time)*1000  
     return elapsed_time, requirement_list_artworks, requirement_list_nationalities
+
+###########################################################################################
+
+def getTransportationCostByDepartment(catalog, data_structure, sorting_method, department):
+    start_time = time.process_time()
+
+    requirement_info = model.getTransportationCostByDepartment(catalog, data_structure,
+                                                                sorting_method, department)
+    requirement_list_by_date = requirement_info[0]
+    requirement_list_by_price = requirement_info[1]
+    total_cost = requirement_info[2]
+    total_weight = requirement_info[3]
+
+    stop_time = time.process_time()
+    elapsed_time = (stop_time - start_time)*1000 
+    return elapsed_time, requirement_list_by_date, requirement_list_by_price, total_cost, total_weight
