@@ -34,31 +34,15 @@ import time
 ###########################################################################################
 
 def initCatalog(data_structure):
-    start_time = time.process_time()
-
-    catalog = model.newCatalog(data_structure)
-
-    stop_time = time.process_time()
-    elapsed_time = (stop_time - start_time)*1000  
-    #RAM_usage = psutil.virtual_memory()[2]
-    RAM_usage = 0
-    return elapsed_time, RAM_usage, catalog
+    return model.newCatalog(data_structure)
 
 ###########################################################################################
 # Funciones para la carga de datos
 ###########################################################################################
 
 def loadData(initiation_data, data_structure, artists_sample_size, artworks_sample_size):
-    start_time = time.process_time()
-
     loadArtistsRelatedData(initiation_data, data_structure, artists_sample_size)
     loadArtworksRelatedData(initiation_data, data_structure, artworks_sample_size)
-    
-    stop_time = time.process_time()
-    elapsed_time = (stop_time - start_time)*1000  
-    #RAM_usage = psutil.virtual_memory()[2]
-    RAM_usage = 0
-    return elapsed_time, RAM_usage
 
 ###########################################################################################
 
@@ -87,12 +71,27 @@ def loadArtworksRelatedData(catalog, data_structure, sample_size):
 # Funciones de ordenamiento
 ###########################################################################################
 
+def requirement1Info(requirement_list):
+    return model.requirement1Info(requirement_list)
+
+###########################################################################################
+
+def requirement2Info(requirement_list):
+    return model.requirement2Info(requirement_list)
+
+###########################################################################################
+
+def requirement3Info(requirement_list):
+    return model.requirement3Info(requirement_list)
+
 ###########################################################################################
 # Funciones de consulta sobre el catálogo
 ###########################################################################################
 
 def getDataStructure(data_structure):
     return model.getDataStructure(data_structure)
+
+###########################################################################################
 
 def GetConstituentIDList(Ids_list):
     return model.GetConstituentIDList(Ids_list)
@@ -107,9 +106,9 @@ def getArtistsByBirthYear(catalog, data_structure, initial_birth_year, end_birth
 
     stop_time = time.process_time()
     elapsed_time = (stop_time - start_time)*1000  
-    #RAM_usage = psutil.virtual_memory()[2]
-    RAM_usage = 0
-    return elapsed_time, RAM_usage, requirement_list
+    return elapsed_time, requirement_list
+
+###########################################################################################
 
 def getArtworksByAdquisitonDate(catalog, data_structure, sorting_method,
                                                     initial_adquisiton_date, end_adquisition_date):
@@ -121,7 +120,18 @@ def getArtworksByAdquisitonDate(catalog, data_structure, sorting_method,
 
     stop_time = time.process_time()
     elapsed_time = (stop_time - start_time)*1000  
-    #RAM_usage = psutil.virtual_memory()[2]
-    RAM_usage = 0
+    return elapsed_time, requirement_list, num_purchased_artworks
 
-    return elapsed_time, RAM_usage, requirement_list, num_purchased_artworks
+###########################################################################################
+
+def getArtworksByMediumAndArtist(catalog, artist_name):
+    start_time = time.process_time()
+
+    requirement_info = model.getArtworksByMediumAndArtist(catalog, artist_name)
+    requirement_list = requirement_info[0]
+    num_total_artworks = requirement_info[1]
+    name_most_used_medium = requirement_info[2]
+
+    stop_time = time.process_time()
+    elapsed_time = (stop_time - start_time)*1000  
+    return elapsed_time, requirement_list, num_total_artworks, name_most_used_medium

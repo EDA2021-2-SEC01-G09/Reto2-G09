@@ -23,8 +23,6 @@
  *
  * Dario Correal - Version inicial
  """
-
-from typing import Counter
 import config as cf
 from DISClib.ADT import list as lt
 from DISClib.ADT import list as lt
@@ -41,8 +39,9 @@ assert cf
 
 def newCatalog(data_structure):
 
-    catalog = {'artists_keys': None,
-               'artists': None,
+    catalog = {'artists_Ids_keys': None,
+               'artists_names': None,
+               'artists_Ids': None,
                'artworks': None,
                'birth_years': None,
                'adquisition_years': None,
@@ -50,10 +49,13 @@ def newCatalog(data_structure):
                'nationalities_keys': None,
                'departments': None}
  
-    catalog['artists_keys'] = lt.newList(data_structure)
-    catalog['artists'] = mp.newMap(3907,
+    catalog['artists_names'] = mp.newMap(3907,
                                    maptype='PROBING',
                                    loadfactor=0.5)
+    catalog['artists_Ids'] = mp.newMap(3907,
+                                   maptype='PROBING',
+                                   loadfactor=0.5)
+    catalog['artists_Ids_keys'] = lt.newList(data_structure)
     catalog['artworks'] = mp.newMap(1543,
                                    maptype='PROBING',
                                    loadfactor=0.5)
@@ -78,9 +80,11 @@ def newCatalog(data_structure):
 ###########################################################################################
 
 def addArtist(catalog, artist, data_structure):
-    lt.addLast(catalog['artists_keys'], artist['ConstituentID'])
+    artist_Id = artist['ConstituentID']
+    lt.addLast(catalog['artists_Ids_keys'], artist_Id)
+    mp.put(catalog['artists_names'], artist['DisplayName'], artist_Id)
     artist_info = newArtist(artist, data_structure)
-    mp.put(catalog['artists'], artist['ConstituentID'], artist_info)
+    mp.put(catalog['artists_Ids'], artist_Id, artist_info)
 
 ###########################################################################################
 
@@ -118,11 +122,13 @@ def addMedium(catalog, artwork, data_structure):
     artists_Ids_list = GetConstituentIDList(artwork['ConstituentID'])
     medium = artwork['Medium']
     for artist_Ids in artists_Ids_list:
-        artist_mediums = me.getValue(mp.get(catalog['artists'], artist_Ids))['mediums']
+        artist_mediums = me.getValue(mp.get(catalog['artists_Ids'], artist_Ids))['mediums'] 
         if mp.contains(artist_mediums, medium):
             lt.addLast(me.getValue(mp.get(artist_mediums, medium)), artwork)
         else:
+            artist_mediums_keys = me.getValue(mp.get(catalog['artists_Ids'], artist_Ids))['mediums_keys']
             medium_artworks_list = lt.newList(data_structure)
+            lt.addLast(artist_mediums_keys, medium)
             lt.addLast(medium_artworks_list, artwork)
             mp.put(artist_mediums, medium, medium_artworks_list)
 
@@ -133,7 +139,7 @@ def addNationality(catalog, artwork, data_structure):
     nationalities_map_keys_list = catalog['nationalities_keys']
     artists_Ids_list = GetConstituentIDList(artwork['ConstituentID'])
     for artist_Id in artists_Ids_list:
-        nationality = me.getValue(mp.get(catalog['artists'], artist_Id))['info']['Nationality']
+        nationality = me.getValue(mp.get(catalog['artists_Ids'], artist_Id))['info']['Nationality']
         if mp.contains(nationalities_map, nationality):
             lt.addLast(me.getValue(mp.get(nationalities_map, nationality)), artwork) 
         else:
@@ -160,12 +166,14 @@ def addDepartment(catalog, artwork, data_structure):
 
 def newArtist(artist, data_structure):
     artworks = lt.newList(data_structure)
+    mediums_keys_list = lt.newList(data_structure)
     mediums = mp.newMap(50,
                     maptype='PROBING',
                     loadfactor=0.5)
     artist_info = {'info': artist,
                     'artworks': artworks,
-                    'mediums': mediums}
+                    'mediums': mediums,
+                    'mediums_keys': mediums_keys_list}
     return artist_info
 
 ###########################################################################################
@@ -219,6 +227,24 @@ def getArtworksByAdquisitonDate(catalog, data_structure, sorting_method,
 
     return date_adquired_artworks_list
 
+###########################################################################################
+
+def getArtworksByMediumAndArtist(catalog, artist_name):
+    artist_Id = me.getValue(mp.get(catalog['artists_names'], artist_name))
+    mediums_keys_list = me.getValue(mp.get(catalog['artists_Ids'], artist_Id))['mediums_keys']
+    print(mediums_keys_list)
+    mediums_map = me.getValue(mp.get(catalog['artists_Ids'], artist_Id))['mediums']
+    num_more_artworks = 0
+    num_total_artworks = 0
+    for medium_name in lt.iterator(mediums_keys_list):
+        medium_artworks = me.getValue(mp.get(mediums_map, medium_name))
+        num_medium = lt.size(medium_artworks)
+        num_total_artworks += num_medium
+        if num_medium > num_more_artworks:
+            num_more_artworks = num_medium
+            name_more_artworks = medium_name
+            list_more_artworks = medium_artworks
+    return list_more_artworks, num_more_artworks, name_more_artworks
 
 ###########################################################################################
 # Funciones utilizadas para comparar elementos dentro de una lista
@@ -257,6 +283,8 @@ def TransformationDateToDays(date):
         date_in_days = 0
     return date_in_days
 
+###########################################################################################
+
 def getNumPurchasedArtworks(requirement_list, sorting_method):
     num_purchased_artworks = 0
     for artwork in lt.iterator(requirement_list):
@@ -278,8 +306,31 @@ def SortingMethodExecution(sorting_method, list, cmpFunction):
         sorted_list = merge.sort(list, cmpFunction)
     else:
         sorted_list = quick.sort(list, cmpFunction)
-
     return sorted_list
+
+###########################################################################################
+
+def requirement1Info(requirement_list):
+    num_artists = lt.size(requirement_list)
+    first_artists = lt.subList(requirement_list, 1, 3)
+    last_artists = lt.subList(requirement_list, num_artists - 2, 3)
+    return num_artists, first_artists, last_artists
+
+###########################################################################################
+
+def requirement2Info(requirement_list):
+    num_artworks = lt.size(requirement_list)
+    first_artworks = lt.subList(requirement_list, num_artworks - 2, 3)
+    last_artworks = lt.subList(requirement_list, 1, 3)
+    return num_artworks, first_artworks, last_artworks
+
+###########################################################################################
+
+def requirement3Info(requirement_list):
+    num_artworks_medium = lt.size(requirement_list)
+    first_artworks = lt.subList(requirement_list, 1, 3)
+    last_artworks = lt.subList(requirement_list, num_artworks_medium - 2, 3)
+    return num_artworks_medium, first_artworks, last_artworks
 
 ###########################################################################################
 # Funciones de Comparación

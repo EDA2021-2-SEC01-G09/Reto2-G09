@@ -60,8 +60,8 @@ def nextPrime(N):
 
 print('Número de artistas:', num_artists)
 print('Número de obras de arte:', num_artworks)
-print('''Número de elementos iniciales de catalog['artists_map']:''', nextPrime(num_artists*2))
-print('''Número de elementos iniciales de catalog['artworks_map']:''', nextPrime(num_artworks*2))
+print('''Número de elementos iniciales de catalog['artists_Ids'] y catalog['artists_names']:''', nextPrime(num_artists*2))
+print('''Número de elementos iniciales de catalog['artworks']:''', nextPrime(num_artworks*2))
 print('''Número de elementos iniciales de catalog ['birth_years']:''', nextPrime(len(birth_years_list)*2))
 print('''Número de elementos iniciales de catalog['adquisition_years']:''', nextPrime(len(adquistion_years_list)*2))
 print('''Número de elementos iniciales de catalog['nationalities']:''', nextPrime(len(nationalities_list)*2))
