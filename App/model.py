@@ -89,6 +89,11 @@ def addArtist(catalog, artist, data_structure):
 ###########################################################################################
 
 def addArtwork(catalog, artwork):
+    artists_Ids_list = GetConstituentIDList(artwork['ConstituentID'])
+    artists_map = catalog['artists_Ids']
+    for artist_Id in artists_Ids_list:
+        if mp.contains(artists_map, artist_Id):
+            me.getValue(mp.get(artists_map, artist_Id))['artworks_num'] += 1 
     mp.put(catalog['artworks'], artwork['ObjectID'], artwork)
 
 ###########################################################################################
@@ -140,15 +145,17 @@ def addNationality(catalog, artwork, data_structure):
     nationalities_map = catalog['nationalities']
     nationalities_keys_list = catalog['nationalities_keys']
     artists_Ids_list = GetConstituentIDList(artwork['ConstituentID'])
+    artists_map = catalog['artists_Ids']
     for artist_Id in artists_Ids_list:
-        nationality = me.getValue(mp.get(catalog['artists_Ids'], artist_Id))['info']['Nationality']
-        if mp.contains(nationalities_map, nationality):
-            lt.addLast(me.getValue(mp.get(nationalities_map, nationality)), artwork) 
-        else:
-            nationality_list = lt.newList(data_structure)
-            lt.addLast(nationality_list, artwork)
-            mp.put(nationalities_map, nationality, nationality_list)
-            lt.addLast(nationalities_keys_list, nationality)
+        if mp.contains(artists_map, artist_Id):
+            nationality = me.getValue(mp.get(artists_map, artist_Id))['info']['Nationality']
+            if mp.contains(nationalities_map, nationality):
+                lt.addLast(me.getValue(mp.get(nationalities_map, nationality)), artwork) 
+            else:
+                nationality_list = lt.newList(data_structure)
+                lt.addLast(nationality_list, artwork)
+                mp.put(nationalities_map, nationality, nationality_list)
+                lt.addLast(nationalities_keys_list, nationality)
 
 ###########################################################################################
 
@@ -167,13 +174,12 @@ def addDepartment(catalog, artwork, data_structure):
 ###########################################################################################
 
 def newArtist(artist, data_structure):
-    artworks = lt.newList(data_structure)
     mediums_keys_list = lt.newList(data_structure)
     mediums = mp.newMap(53,
                     maptype='PROBING',
                     loadfactor=0.5)
     artist_info = {'info': artist,
-                    'artworks': artworks,
+                    'artworks_num': 0,
                     'mediums': mediums,
                     'mediums_keys': mediums_keys_list}
     return artist_info
@@ -296,10 +302,12 @@ def getArtworksByMediumAndArtist(catalog, artist_name):
     if mp.contains(artist_names_map, artist_name):
         artist_Id = me.getValue(mp.get(catalog['artists_names'], artist_name))
         mediums_keys_list = me.getValue(mp.get(catalog['artists_Ids'], artist_Id))['mediums_keys']
-        print(mediums_keys_list)
+        num_total_mediums = lt.size(mediums_keys_list)
         mediums_map = me.getValue(mp.get(catalog['artists_Ids'], artist_Id))['mediums']
         num_more_artworks = 0
         num_total_artworks = 0
+        list_more_artworks = lt.newList()
+        name_more_artworks = ''
         for medium_name in lt.iterator(mediums_keys_list):
             medium_artworks = me.getValue(mp.get(mediums_map, medium_name))
             num_medium = lt.size(medium_artworks)
@@ -308,7 +316,7 @@ def getArtworksByMediumAndArtist(catalog, artist_name):
                 num_more_artworks = num_medium
                 name_more_artworks = medium_name
                 list_more_artworks = medium_artworks
-    return list_more_artworks, num_more_artworks, name_more_artworks
+    return list_more_artworks, num_total_artworks, num_total_mediums, name_more_artworks
 
 ###########################################################################################
 
@@ -337,6 +345,35 @@ def getTransportationCostByDepartment(catalog, data_structure, sorting_method, d
     SortingMethodExecution(sorting_method, requirement_list_by_date, cmpArtworkByCreationDate)
 
     return requirement_list_by_date, requirement_list_by_price, total_cost, total_weight
+
+###########################################################################################
+
+def getMostProlificArtists(catalog, data_structure, sorting_method,
+                                            initial_birth_year, end_birth_year, num_artists):
+    most_prolific_artists_list = lt.newList(data_structure)
+    birth_years_map = catalog['birth_years']
+    for year in range(initial_birth_year, end_birth_year + 1):
+        year = str(year)
+        if mp.contains(birth_years_map, year):
+            artists_birth_year = me.getValue(mp.get(birth_years_map, year))
+            for artist in lt.iterator(artists_birth_year):
+                artists_Id = artist['ConstituentID']
+                artist_dict = me.getValue(mp.get(catalog['artists_Ids'], artists_Id))
+                artist_name = artist_dict['info']['DisplayName']
+                artist_medium_info = getArtworksByMediumAndArtist(catalog, artist_name)
+                artworks_most_used_medium = artist_medium_info[0]
+                if lt.size(artworks_most_used_medium) >= 5:
+                    artworks_most_used_medium = lt.subList(artist_medium_info[0], 1, 5)
+                num_more_artworks = lt.size(artworks_most_used_medium)
+                num_total_artworks = artist_medium_info[1] 
+                num_total_mediums = artist_medium_info[2] 
+                name_most_used_medium = artist_medium_info[3]
+                lt.addLast(most_prolific_artists_list, (artist_name, artworks_most_used_medium, 
+                num_total_artworks, num_total_mediums, num_more_artworks, name_most_used_medium))
+    SortingMethodExecution(sorting_method, most_prolific_artists_list, cmpMostProlificArtist)
+    requirement_list = lt.subList(most_prolific_artists_list, 1, num_artists)
+    
+    return requirement_list
 
 ###########################################################################################
 # Funciones utilizadas para comparar elementos dentro de una lista
@@ -464,10 +501,10 @@ def cmpArtworksByDateAcquired(artwork1, artwork2):
 
 ###########################################################################################
 
-def cmpNationalityByNumArtworks(nationality_1, nationality_2):
-    num_artworks_nationality_1 = nationality_1[1]
-    num_artworks_nationality_2 = nationality_2[1]
-    return num_artworks_nationality_1 > num_artworks_nationality_2
+def cmpNationalityByNumArtworks(nationality1, nationality2):
+    num_artworks_nationality1 = nationality1[1]
+    num_artworks_nationality2 = nationality2[1]
+    return num_artworks_nationality1 > num_artworks_nationality2
 
 ###########################################################################################
 
@@ -498,4 +535,22 @@ def cmpArtworkByCreationDate(artwork1, artwork2):
         result = True
     else:
         result = False
+    return result
+
+def cmpMostProlificArtist(artist1, artist2):
+    num_artworks_artist1 = artist1[2]
+    num_artworks_artist2 = artist2[2]
+    if num_artworks_artist1 > num_artworks_artist2:
+        result = True
+    elif num_artworks_artist1 < num_artworks_artist2:
+        result = False
+    else:
+        num_mediums_artist1 = artist1[3]
+        num_mediums_artist2 = artist2[3]
+        if num_mediums_artist1 > num_mediums_artist2:
+            result = True
+        elif num_mediums_artist1 < num_mediums_artist2:
+            result = False
+        else:
+            result = False
     return result

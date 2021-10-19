@@ -28,6 +28,9 @@ from DISClib.ADT import map as mp
 from DISClib.DataStructures import mapentry as me
 assert cf
 
+default_limit = 1000
+sys.setrecursionlimit(default_limit*10)
+
 ###########################################################################################
 #Funciones de exposición de resultados
 ###########################################################################################
@@ -77,13 +80,15 @@ def printRequirement2(catalog, requirement_list, num_purchased_artworks):
 
 ###########################################################################################
 
-def printRequirement3(requirement_list, num_total_artworks, name_most_used_medium):
+def printRequirement3(requirement_list, num_total_artworks, num_total_mediums, name_most_used_medium):
     requirement_info = controller.requirement3Info(requirement_list)
     num_artworks_medium = requirement_info[0]
     first_artworks = requirement_info[1]
     last_artworks = requirement_info[2]
     print('Existen', num_total_artworks, 'obras de arte del artista.')
-    print('Existen', num_artworks_medium, 'obras de arte del artista hechos con la técnica', name_most_used_medium, '.')
+    print('El artista empleó', num_total_mediums, 'técnicas en sus obras')
+    print('Existen', num_artworks_medium, 'obras de arte del artista hechos con su técnica más utilizada,', name_most_used_medium)
+    #+ name_most_used_medium + ' .'
     print('')
     print('Las primeras 3 obras de arte de la técnica más utilizada por el artista son:')
     for artwork in lt.iterator(first_artworks):
@@ -155,6 +160,28 @@ def printRequirement5(catalog, requirement_list_by_date, requirement_list_by_pri
                     ', Fecha de creación: ' + artwork_info['Date'] + ', Medio '+ artwork_info['Medium'] + 
                     ', Dimensiones: ' + artwork_info['Dimensions'] + ', Costo de transporte: ' + 
                     str(round(artwork_cost, 2)) + ' USD')
+
+###########################################################################################
+
+def printRequirement6(requirement_list, num_artists):
+    print('Los', num_artists, 'artistas más prolíficos del periodo son:')
+    print('')
+    for artist in lt.iterator(requirement_list):
+        artist_name = artist[0]
+        artworks_most_used_medium = artist[1]
+        num_total_artworks = artist[2]
+        num_total_mediums = artist[3]
+        num_most_used_medium = artist[4]
+        name_most_used_medium = artist[5]
+        print(artist_name + ' con:')
+        print('-', num_total_artworks, 'obras de arte creadas')
+        print('El artista empleó', num_total_mediums, 'técnicas en sus obras')
+        print('-', 'Existen', num_most_used_medium, 'obras de arte hechas con su técnica más utilizada,', name_most_used_medium)
+        print('')
+        print('Las primeras 5 obras de arte hechas en la técnica más utilizada por el artista son: ')
+        for artwork in lt.iterator(artworks_most_used_medium):
+            print('Título: ' + artwork['Title'] + ', Fecha de creación: ' + artwork['Date'] +
+                     ', Medio '+ artwork['Medium'] + ', Dimensiones: ' + artwork['Dimensions'])
 
 ###########################################################################################
 #Menu principal
@@ -230,7 +257,7 @@ while True:
         print('')
         requirement_list = requirement_info[1]    
         num_purchased_artworks = requirement_info[2]                         
-        printRequirement2(catalog, requirement_list, num_purchased_artworks, catalog)
+        printRequirement2(catalog, requirement_list, num_purchased_artworks)
 
     elif int(inputs[0]) == 4:
         artist_name = input('Ingrese el nombre del artista: ')
@@ -243,8 +270,9 @@ while True:
         print('')
         requirement_list = requirement_info[1]
         num_total_artworks = requirement_info[2]
-        name_most_used_medium = requirement_info[3]
-        printRequirement3(requirement_list, num_total_artworks, name_most_used_medium)
+        num_total_mediums = requirement_info[3]
+        name_most_used_medium = requirement_info[2]
+        printRequirement3(requirement_list, num_total_artworks, num_total_mediums, name_most_used_medium)
 
     elif int(inputs[0]) == 5:
         print('')
@@ -275,6 +303,22 @@ while True:
         total_cost = requirement_info[3]
         total_weight = requirement_info[4]
         printRequirement5(catalog, requirement_list_by_date, requirement_list_by_price, total_cost, total_weight) 
+
+    elif int(inputs[0]) == 7:
+        num_artists = int(input('Ingrese el número de artistas que desea en la clasificación: '))
+        initial_birth_year = int(input('Ingrese el primer año del intervalo: '))
+        end_birth_year = int(input('Ingrese el último año del intervalo: '))
+        print('')
+        sorting_method = SortingAlgorithmOptions()
+        print('Procesando...')
+        requirement_info = controller.getMostProlificArtists(catalog, data_structure, sorting_method,
+                                                                initial_birth_year, end_birth_year, num_artists)
+        elapsed_time = requirement_info[0]
+        print('')
+        print('Tiempo empleado:', elapsed_time, 'mseg')
+        print('')
+        requirement_list = requirement_info[1]
+        printRequirement6(requirement_list, num_artists)
     else:
         sys.exit(0)
 sys.exit(0)

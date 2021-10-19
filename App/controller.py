@@ -140,11 +140,12 @@ def getArtworksByMediumAndArtist(catalog, artist_name):
     requirement_info = model.getArtworksByMediumAndArtist(catalog, artist_name)
     requirement_list = requirement_info[0]
     num_total_artworks = requirement_info[1]
-    name_most_used_medium = requirement_info[2]
+    num_total_mediums = requirement_info[2]
+    name_most_used_medium = requirement_info[3]
 
     stop_time = time.process_time()
     elapsed_time = (stop_time - start_time)*1000  
-    return elapsed_time, requirement_list, num_total_artworks, name_most_used_medium
+    return elapsed_time, requirement_list, num_total_artworks, num_total_mediums, name_most_used_medium
 
 ###########################################################################################
 
@@ -174,3 +175,14 @@ def getTransportationCostByDepartment(catalog, data_structure, sorting_method, d
     stop_time = time.process_time()
     elapsed_time = (stop_time - start_time)*1000 
     return elapsed_time, requirement_list_by_date, requirement_list_by_price, total_cost, total_weight
+
+def getMostProlificArtists(catalog, data_structure, sorting_method,
+                                                    initial_birth_year, end_birth_year, num_artists):
+    start_time = time.process_time()
+
+    requirement_info = model.getMostProlificArtists(catalog, data_structure, sorting_method,
+                                                    initial_birth_year, end_birth_year, num_artists)
+
+    stop_time = time.process_time()
+    elapsed_time = (stop_time - start_time)*1000 
+    return elapsed_time, requirement_info
