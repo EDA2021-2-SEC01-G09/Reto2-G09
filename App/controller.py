@@ -1,4 +1,4 @@
-﻿"""
+"""
  * Copyright 2020, Departamento de sistemas y Computación,
  * Universidad de Los Andes
  *
@@ -94,6 +94,9 @@ def loadArtworksRelatedData(catalog, data_structure, sample_size):
 def getDataStructure(data_structure):
     return model.getDataStructure(data_structure)
 
+def GetConstituentIDList(Ids_list):
+    return model.GetConstituentIDList(Ids_list)
+
 ###########################################################################################
 
 def getArtistsByBirthYear(catalog, data_structure, initial_birth_year, end_birth_year):
@@ -107,3 +110,18 @@ def getArtistsByBirthYear(catalog, data_structure, initial_birth_year, end_birth
     #RAM_usage = psutil.virtual_memory()[2]
     RAM_usage = 0
     return elapsed_time, RAM_usage, requirement_list
+
+def getArtworksByAdquisitonDate(catalog, data_structure, sorting_method,
+                                                    initial_adquisiton_date, end_adquisition_date):
+    start_time = time.process_time()
+
+    requirement_list = model.getArtworksByAdquisitonDate(catalog, data_structure, sorting_method,
+                                                    initial_adquisiton_date, end_adquisition_date)
+    num_purchased_artworks = model.getNumPurchasedArtworks(requirement_list, sorting_method)
+
+    stop_time = time.process_time()
+    elapsed_time = (stop_time - start_time)*1000  
+    #RAM_usage = psutil.virtual_memory()[2]
+    RAM_usage = 0
+
+    return elapsed_time, RAM_usage, requirement_list, num_purchased_artworks

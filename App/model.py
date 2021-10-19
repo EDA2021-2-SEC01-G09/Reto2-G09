@@ -1,4 +1,4 @@
-﻿"""
+"""
  * Copyright 2020, Departamento de sistemas y Computación,
  * Universidad de Los Andes
  *
@@ -24,12 +24,16 @@
  * Dario Correal - Version inicial
  """
 
+from typing import Counter
 import config as cf
 from DISClib.ADT import list as lt
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
 from DISClib.DataStructures import mapentry as me
+from DISClib.Algorithms.Sorting import insertionsort as insertion
+from DISClib.Algorithms.Sorting import shellsort as shell
 from DISClib.Algorithms.Sorting import mergesort as merge
+from DISClib.Algorithms.Sorting import quicksort as quick
 assert cf
 ###########################################################################################
 # Construccion de modelos
@@ -100,6 +104,7 @@ def addBirthYearArtist(catalog, artist, data_structure):
 def addAdquisitionYear(catalog, artwork, data_structure):
     adquisition_years_map = catalog['adquisition_years']
     adquisition_year = getAdquisitionYear(artwork['DateAcquired'])
+
     if mp.contains(adquisition_years_map, adquisition_year):
         lt.addLast(me.getValue(mp.get(adquisition_years_map, adquisition_year)), artwork)
     else:
@@ -167,6 +172,58 @@ def newArtist(artist, data_structure):
 # Funciones de consulta
 ###########################################################################################
 
+def getArtistsByBirthYear(catalog, data_structure, initial_birth_year, end_birth_year):
+    artists_birth_years_interval = lt.newList(data_structure)
+    birth_years_map = catalog['birth_years']
+    for year in range(initial_birth_year, end_birth_year + 1):
+        year = str(year)
+        if mp.contains(birth_years_map, year):
+            artists_birth_year = me.getValue(mp.get(birth_years_map, year))
+            for artist in lt.iterator(artists_birth_year):
+                lt.addLast(artists_birth_years_interval, artist)
+    return artists_birth_years_interval
+
+###########################################################################################
+
+def getArtworksByAdquisitonDate(catalog, data_structure, sorting_method,
+                                                    initial_adquisiton_date, end_adquisition_date):
+    date_adquired_artworks_list = lt.newList(data_structure)
+
+    adquisition_years_map = catalog['adquisition_years']
+    initial_adquisition_year = getAdquisitionYear(initial_adquisiton_date)
+    initial_adquisiton_date_in_days = TransformationDateToDays(initial_adquisiton_date)
+    end_adquisition_year = getAdquisitionYear(end_adquisition_date)
+    end_adquisition_date_in_days = TransformationDateToDays(end_adquisition_date)
+
+    if mp.contains(adquisition_years_map, initial_adquisition_year):
+        first_year_artworks = me.getValue(mp.get(adquisition_years_map, initial_adquisition_year))
+        for artwork in lt.iterator(first_year_artworks):
+            date = TransformationDateToDays(artwork['DateAcquired'])
+            if date >= initial_adquisiton_date_in_days:
+                lt.addLast(date_adquired_artworks_list, artwork)
+
+    for year in range(initial_adquisition_year + 1, end_adquisition_year):
+        if mp.contains(adquisition_years_map, year):
+            year_artworks = me.getValue(mp.get(adquisition_years_map, year))
+            for artwork in lt.iterator(year_artworks):
+                lt.addLast(date_adquired_artworks_list, artwork)
+
+    if mp.contains(adquisition_years_map, end_adquisition_year):
+        last_year_interval_artworks = me.getValue(mp.get(adquisition_years_map, end_adquisition_year))
+        for artwork in lt.iterator(last_year_interval_artworks):
+            date = TransformationDateToDays(artwork['DateAcquired'])
+            if date <= end_adquisition_date_in_days:
+                lt.addLast(date_adquired_artworks_list, artwork)
+
+    SortingMethodExecution(sorting_method, date_adquired_artworks_list, cmpArtworkByDateAcquired)
+
+    return date_adquired_artworks_list
+
+
+###########################################################################################
+# Funciones utilizadas para comparar elementos dentro de una lista
+###########################################################################################
+
 def getDataStructure(data_structure):
     if data_structure == 1:
         data_structure_name = 'SINGLE_LINKED'
@@ -192,59 +249,44 @@ def GetConstituentIDList(Ids_list):
 
 ###########################################################################################
 
-def getArtistsByBirthYear(catalog, data_structure, initial_birth_year, end_birth_year):
-    artists_birth_years_interval = lt.newList(data_structure)
-    birth_years_map = catalog['birth_years']
-    for year in range(initial_birth_year, end_birth_year + 1):
-        year = str(year)
-        if mp.contains(birth_years_map, year):
-            artists_birth_year = me.getValue(mp.get(birth_years_map, year))
-            for artist in lt.iterator(artists_birth_year):
-                lt.addLast(artists_birth_years_interval, artist)
-    return artists_birth_years_interval
+def TransformationDateToDays(date):
+    date_information = date.split('-')
+    if len(date_information) != 1:
+        date_in_days = int(date_information[0])*365 + int(date_information[1])*30 + int(date_information[2])
+    else:
+        date_in_days = 0
+    return date_in_days
 
-###########################################################################################
-# Funciones utilizadas para comparar elementos dentro de una lista
-###########################################################################################
+def getNumPurchasedArtworks(requirement_list, sorting_method):
+    num_purchased_artworks = 0
+    for artwork in lt.iterator(requirement_list):
+        credit_line = artwork['CreditLine'].lower()
+        if 'purchase' in credit_line:
+            num_purchased_artworks += 1
+    return num_purchased_artworks
 
 ###########################################################################################
 # Funciones de ordenamiento
 ###########################################################################################
 
+def SortingMethodExecution(sorting_method, list, cmpFunction):
+    if sorting_method == 1:
+        sorted_list = insertion.sort(list, cmpFunction)
+    elif sorting_method == 2:
+        sorted_list = shell.sort(list, cmpFunction)
+    elif sorting_method == 3:
+        sorted_list = merge.sort(list, cmpFunction)
+    else:
+        sorted_list = quick.sort(list, cmpFunction)
+
+    return sorted_list
+
 ###########################################################################################
 # Funciones de Comparación
 ###########################################################################################
 
-def compareArtworkandArtistIds(id1, id2):
-    """
-    Compara dos ids de dos libros
-    """
-    if (id1 == id2):
-        return 0
-    elif id1 > id2:
-        return 1
-    else:
-        return -1
+def cmpArtworkByDateAcquired(artwork1, artwork2): 
+    date_acquired_artwork_1 = TransformationDateToDays(artwork1['DateAcquired'])
+    date_acquired_artwork_2 = TransformationDateToDays(artwork2['DateAcquired'])
+    return date_acquired_artwork_1 > date_acquired_artwork_2
 
-def compareMapArtworkandArtistIds(id, entry):
-    """
-    Compara dos ids de obras, id es un identificador
-    y entry una pareja llave-valor
-    """
-    identry = me.getKey(entry)
-    if (int(id) == int(identry)):
-        return 0
-    elif (int(id) > int(identry)):
-        return 1
-    else:
-        return -1
-
-def cmpDateArtworks(artwork1, artwork2):
-    artwork1_date = artwork1['Date']
-    artwork2_date = artwork2['Date']
-    if artwork1_date == '':
-        artwork1_date = 0
-    if artwork2_date == '':
-        artwork2_date = 0 
- 
-    return artwork1_date > artwork2_date
