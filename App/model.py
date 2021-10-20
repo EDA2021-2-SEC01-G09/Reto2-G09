@@ -305,7 +305,7 @@ def getArtworksByMediumAndArtist(catalog, artist_name):
     list_more_artworks = lt.newList()
     name_more_artworks = ''
     if mp.contains(artist_names_map, artist_name):
-        artist_Id = me.getValue(mp.get(catalog['artists_names'], artist_name))
+        artist_Id = me.getValue(mp.get(artist_names_map, artist_name))
         mediums_keys_list = me.getValue(mp.get(catalog['artists_Ids'], artist_Id))['mediums_keys']
         num_total_mediums = lt.size(mediums_keys_list)
         mediums_map = me.getValue(mp.get(catalog['artists_Ids'], artist_Id))['mediums']
