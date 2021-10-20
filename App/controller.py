@@ -27,7 +27,6 @@ from DISClib.DataStructures import mapentry as me
 import model
 import csv
 import time
-import psutil
 
 ###########################################################################################
 # Inicialización del Catálogo de libros
@@ -114,10 +113,9 @@ def getArtistsByBirthYear(catalog, data_structure, initial_birth_year, end_birth
     requirement_list = model.getArtistsByBirthYear(catalog, data_structure,
                                                      initial_birth_year, end_birth_year)
 
-    RAM_used = psutil.virtual_memory()[2]
     stop_time = time.process_time()
     elapsed_time = (stop_time - start_time)*1000 
-    return elapsed_time, RAM_used, requirement_list
+    return elapsed_time, requirement_list
 
 ###########################################################################################
 
@@ -129,10 +127,9 @@ def getArtworksByAdquisitonDate(catalog, data_structure, sorting_method,
                                                     initial_adquisiton_date, end_adquisition_date)
     num_purchased_artworks = model.getNumPurchasedArtworks(requirement_list, sorting_method)
 
-    RAM_used = psutil.virtual_memory()[2]
     stop_time = time.process_time()
     elapsed_time = (stop_time - start_time)*1000  
-    return elapsed_time, RAM_used, requirement_list, num_purchased_artworks
+    return elapsed_time, requirement_list, num_purchased_artworks
 
 ###########################################################################################
 
@@ -145,10 +142,9 @@ def getArtworksByMediumAndArtist(catalog, artist_name):
     num_total_mediums = requirement_info[2]
     name_most_used_medium = requirement_info[3]
 
-    RAM_used = psutil.virtual_memory()[2]
     stop_time = time.process_time()
     elapsed_time = (stop_time - start_time)*1000  
-    return elapsed_time, RAM_used, requirement_list, num_total_artworks, num_total_mediums, name_most_used_medium
+    return elapsed_time, requirement_list, num_total_artworks, num_total_mediums, name_most_used_medium
 
 ###########################################################################################
 
@@ -159,10 +155,9 @@ def getNationalitiesByNumArtworks(catalog, data_structure, sorting_method):
     requirement_list_artworks = requirement_info[0]
     requirement_list_nationalities = requirement_info[1]
 
-    RAM_used = psutil.virtual_memory()[2]
     stop_time = time.process_time()
     elapsed_time = (stop_time - start_time)*1000  
-    return elapsed_time, RAM_used, requirement_list_artworks, requirement_list_nationalities
+    return elapsed_time, requirement_list_artworks, requirement_list_nationalities
 
 ###########################################################################################
 
@@ -176,10 +171,9 @@ def getTransportationCostByDepartment(catalog, data_structure, sorting_method, d
     total_cost = requirement_info[2]
     total_weight = requirement_info[3]
 
-    RAM_used = psutil.virtual_memory()[2]
     stop_time = time.process_time()
     elapsed_time = (stop_time - start_time)*1000 
-    return elapsed_time, RAM_used, requirement_list_by_date, requirement_list_by_price, total_cost, total_weight
+    return elapsed_time, requirement_list_by_date, requirement_list_by_price, total_cost, total_weight
 
 ###########################################################################################
 
@@ -189,7 +183,7 @@ def getMostProlificArtists(catalog, data_structure, sorting_method,
 
     requirement_info = model.getMostProlificArtists(catalog, data_structure, sorting_method,
                                                     initial_birth_year, end_birth_year, num_artists)
-    RAM_used = psutil.virtual_memory()[2]
+                                                    
     stop_time = time.process_time()
     elapsed_time = (stop_time - start_time)*1000  
-    return elapsed_time, RAM_used, requirement_info
+    return elapsed_time, requirement_info

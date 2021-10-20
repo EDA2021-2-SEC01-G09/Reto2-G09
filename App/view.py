@@ -236,13 +236,10 @@ while True:
         requirement_info = controller.getArtistsByBirthYear(catalog, data_structure,
                                                                 initial_birth_year, end_birth_year)
         elapsed_time = requirement_info[0]
-        RAM_used = requirement_info[1]
         print('')
-        print('Datos de carga:')
         print('Tiempo empleado:', elapsed_time, 'mseg')
-        print('Porcentaje de Memoria RAM utilizada:', RAM_used)
         print('')
-        requirement_list = requirement_info[2]
+        requirement_list = requirement_info[1]
         printRequirement1(requirement_list)
 
     elif option == 3:
@@ -254,14 +251,11 @@ while True:
         requirement_info = controller.getArtworksByAdquisitonDate(catalog, data_structure, sorting_method,
                                                         initial_adquisiton_date, end_adquisition_date)
         elapsed_time = requirement_info[0]
-        RAM_used = requirement_info[1]
         print('')
-        print('Datos de carga:')
         print('Tiempo empleado:', elapsed_time, 'mseg')
-        print('Porcentaje de Memoria RAM utilizada:', RAM_used)
         print('')
-        requirement_list = requirement_info[2]    
-        num_purchased_artworks = requirement_info[3]                         
+        requirement_list = requirement_info[1]    
+        num_purchased_artworks = requirement_info[2]                         
         printRequirement2(catalog, requirement_list, num_purchased_artworks)
 
     elif option == 4:
@@ -270,16 +264,13 @@ while True:
         print('Procesando...')
         requirement_info = controller.getArtworksByMediumAndArtist(catalog, artist_name)
         elapsed_time = requirement_info[0]
-        RAM_used = requirement_info[1]
         print('')
-        print('Datos de carga:')
         print('Tiempo empleado:', elapsed_time, 'mseg')
-        print('Porcentaje de Memoria RAM utilizada:', RAM_used)
         print('')
-        requirement_list = requirement_info[2]
-        num_total_artworks = requirement_info[3]
-        num_total_mediums = requirement_info[4]
-        name_most_used_medium = requirement_info[5]
+        requirement_list = requirement_info[1]
+        num_total_artworks = requirement_info[2]
+        num_total_mediums = requirement_info[3]
+        name_most_used_medium = requirement_info[4]
         printRequirement3(requirement_list, num_total_artworks, num_total_mediums, name_most_used_medium)
 
     elif option == 5:
@@ -288,14 +279,11 @@ while True:
         print('Procesando...')
         requirement_info = controller.getNationalitiesByNumArtworks(catalog, data_structure, sorting_method)
         elapsed_time = requirement_info[0]
-        RAM_used = requirement_info[1]
         print('')
-        print('Datos de carga:')
         print('Tiempo empleado:', elapsed_time, 'mseg')
-        print('Porcentaje de Memoria RAM utilizada:', RAM_used)
         print('')
-        requirement_list_artworks = requirement_info[2]
-        requirement_list_nationalities = requirement_info[3]
+        requirement_list_artworks = requirement_info[1]
+        requirement_list_nationalities = requirement_info[2]
         printRequirement4(catalog, requirement_list_artworks, requirement_list_nationalities) 
 
     elif option == 6:  
@@ -306,16 +294,13 @@ while True:
         requirement_info = controller.getTransportationCostByDepartment(catalog, data_structure, 
                                                                                 sorting_method, department)
         elapsed_time = requirement_info[0]
-        RAM_used = requirement_info[1]
         print('')
-        print('Datos de carga:')
         print('Tiempo empleado:', elapsed_time, 'mseg')
-        print('Porcentaje de Memoria RAM utilizada:', RAM_used)
         print('')
-        requirement_list_by_date = requirement_info[2]
-        requirement_list_by_price = requirement_info[3]
-        total_cost = requirement_info[4]
-        total_weight = requirement_info[5]
+        requirement_list_by_date = requirement_info[1]
+        requirement_list_by_price = requirement_info[2]
+        total_cost = requirement_info[3]
+        total_weight = requirement_info[4]
         printRequirement5(catalog, requirement_list_by_date, requirement_list_by_price, total_cost, total_weight) 
 
     elif option == 7: 
@@ -328,13 +313,10 @@ while True:
         requirement_info = controller.getMostProlificArtists(catalog, data_structure, sorting_method,
                                                                     initial_birth_year, end_birth_year, num_artists)
         elapsed_time = requirement_info[0]
-        RAM_used = requirement_info[1]
         print('')
-        print('Datos de carga:')
         print('Tiempo empleado:', elapsed_time, 'mseg')
-        print('Porcentaje de Memoria RAM utilizada:', RAM_used)
         print('')
-        requirement_list = requirement_info[2]
+        requirement_list = requirement_info[1]
         printRequirement6(requirement_list, num_artists)
     else:
         sys.exit(0)
