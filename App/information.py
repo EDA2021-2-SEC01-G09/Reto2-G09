@@ -1,13 +1,11 @@
 import model
 import math
 import config as cf
-import psutil
 import csv
 assert cf
-print('RAM memory used:', psutil.virtual_memory()[2])
 
-artistsfile = cf.data_dir + 'MoMA/Artists-utf8-small.csv'
-artworksfile = cf.data_dir + 'MoMA/Artworks-utf8-small.csv'
+artistsfile = cf.data_dir + 'MoMA/Artists-utf8-large.csv'
+artworksfile = cf.data_dir + 'MoMA/Artworks-utf8-large.csv'
 input_file_artists = csv.DictReader(open(artistsfile, encoding='utf-8'))
 input_file_artworks = csv.DictReader(open(artworksfile, encoding='utf-8'))
 

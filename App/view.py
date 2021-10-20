@@ -24,8 +24,6 @@ import config as cf
 import sys
 import controller
 from DISClib.ADT import list as lt
-from DISClib.ADT import map as mp
-from DISClib.DataStructures import mapentry as me
 assert cf
 
 default_limit = 1000
@@ -198,6 +196,8 @@ def printMenu():
     print('6- REQ. 5: transportar obras de un departamento')
     print('7- REQ. 6: Encontrar los artistas más prolíficos del museo')
     print('0- Salir')
+    option = int(input('Seleccione una opción para continuar: '))
+    return option
 
 ###########################################################################################
 
@@ -215,10 +215,9 @@ def SortingAlgorithmOptions():
 catalog = None
 
 while True:
-    printMenu()
-    inputs = input('Seleccione una opción para continuar: ')
-    if int(inputs[0]) == 1:
-        print('Existen 1948 artistas y 768 obras de arte en los archivos')
+    option = printMenu()
+    if option == 1:
+        print('Existen 15223 artistas y 138150 obras de arte en los archivos')
         artists_sample_size = int(input('Elija la cantidad de artistas que desea cargar: '))
         artworks_sample_size = int(input('Elija la cantidad de obras de arte que desea cargar: '))
         print('')
@@ -230,81 +229,96 @@ while True:
         catalog = controller.initCatalog(data_structure)
         controller.loadData(catalog, data_structure, artists_sample_size, artworks_sample_size)
 
-    elif int(inputs[0]) == 2:
+    elif option == 2:
         initial_birth_year = int(input('Ingrese el primer año del intervalo: '))
         end_birth_year = int(input('Ingrese el último año del intervalo: '))
         print('Procesando...')
         requirement_info = controller.getArtistsByBirthYear(catalog, data_structure,
-                                                            initial_birth_year, end_birth_year)
+                                                                initial_birth_year, end_birth_year)
         elapsed_time = requirement_info[0]
+        RAM_used = requirement_info[1]
         print('')
+        print('Datos de carga:')
         print('Tiempo empleado:', elapsed_time, 'mseg')
+        print('Porcentaje de Memoria RAM utilizada:', RAM_used)
         print('')
-        requirement_list = requirement_info[1]
+        requirement_list = requirement_info[2]
         printRequirement1(requirement_list)
 
-    elif int(inputs[0]) == 3:
+    elif option == 3:
         initial_adquisiton_date = input('Ingrese la primera fecha del intervalo: ')
         end_adquisition_date = input('Ingrese la última fecha del intervalo: ')
         print('')
         sorting_method = SortingAlgorithmOptions()
         print('Procesando...')
         requirement_info = controller.getArtworksByAdquisitonDate(catalog, data_structure, sorting_method,
-                                                    initial_adquisiton_date, end_adquisition_date)
+                                                        initial_adquisiton_date, end_adquisition_date)
         elapsed_time = requirement_info[0]
+        RAM_used = requirement_info[1]
         print('')
+        print('Datos de carga:')
         print('Tiempo empleado:', elapsed_time, 'mseg')
+        print('Porcentaje de Memoria RAM utilizada:', RAM_used)
         print('')
-        requirement_list = requirement_info[1]    
-        num_purchased_artworks = requirement_info[2]                         
+        requirement_list = requirement_info[2]    
+        num_purchased_artworks = requirement_info[3]                         
         printRequirement2(catalog, requirement_list, num_purchased_artworks)
 
-    elif int(inputs[0]) == 4:
+    elif option == 4:
         artist_name = input('Ingrese el nombre del artista: ')
         print('')
         print('Procesando...')
         requirement_info = controller.getArtworksByMediumAndArtist(catalog, artist_name)
         elapsed_time = requirement_info[0]
+        RAM_used = requirement_info[1]
         print('')
+        print('Datos de carga:')
         print('Tiempo empleado:', elapsed_time, 'mseg')
+        print('Porcentaje de Memoria RAM utilizada:', RAM_used)
         print('')
-        requirement_list = requirement_info[1]
-        num_total_artworks = requirement_info[2]
-        num_total_mediums = requirement_info[3]
-        name_most_used_medium = requirement_info[2]
+        requirement_list = requirement_info[2]
+        num_total_artworks = requirement_info[3]
+        num_total_mediums = requirement_info[4]
+        name_most_used_medium = requirement_info[5]
         printRequirement3(requirement_list, num_total_artworks, num_total_mediums, name_most_used_medium)
 
-    elif int(inputs[0]) == 5:
+    elif option == 5:
         print('')
         sorting_method = SortingAlgorithmOptions()
         print('Procesando...')
         requirement_info = controller.getNationalitiesByNumArtworks(catalog, data_structure, sorting_method)
         elapsed_time = requirement_info[0]
+        RAM_used = requirement_info[1]
         print('')
+        print('Datos de carga:')
         print('Tiempo empleado:', elapsed_time, 'mseg')
+        print('Porcentaje de Memoria RAM utilizada:', RAM_used)
         print('')
-        requirement_list_artworks = requirement_info[1]
-        requirement_list_nationalities = requirement_info[2]
+        requirement_list_artworks = requirement_info[2]
+        requirement_list_nationalities = requirement_info[3]
         printRequirement4(catalog, requirement_list_artworks, requirement_list_nationalities) 
 
-    elif int(inputs[0]) == 6:  
+    elif option == 6:  
         department = input('Ingrese el nombre del departamento: ')
         print('')
         sorting_method = SortingAlgorithmOptions()
         print('Procesando...')
         requirement_info = controller.getTransportationCostByDepartment(catalog, data_structure, 
-                                                                            sorting_method, department)
+                                                                                sorting_method, department)
         elapsed_time = requirement_info[0]
+        RAM_used = requirement_info[1]
         print('')
+        print('Datos de carga:')
         print('Tiempo empleado:', elapsed_time, 'mseg')
+        print('Porcentaje de Memoria RAM utilizada:', RAM_used)
         print('')
-        requirement_list_by_date = requirement_info[1]
-        requirement_list_by_price = requirement_info[2]
-        total_cost = requirement_info[3]
-        total_weight = requirement_info[4]
+        requirement_list_by_date = requirement_info[2]
+        requirement_list_by_price = requirement_info[3]
+        total_cost = requirement_info[4]
+        total_weight = requirement_info[5]
         printRequirement5(catalog, requirement_list_by_date, requirement_list_by_price, total_cost, total_weight) 
 
-    elif int(inputs[0]) == 7:
+    elif option == 7: 
         num_artists = int(input('Ingrese el número de artistas que desea en la clasificación: '))
         initial_birth_year = int(input('Ingrese el primer año del intervalo: '))
         end_birth_year = int(input('Ingrese el último año del intervalo: '))
@@ -312,12 +326,15 @@ while True:
         sorting_method = SortingAlgorithmOptions()
         print('Procesando...')
         requirement_info = controller.getMostProlificArtists(catalog, data_structure, sorting_method,
-                                                                initial_birth_year, end_birth_year, num_artists)
+                                                                    initial_birth_year, end_birth_year, num_artists)
         elapsed_time = requirement_info[0]
+        RAM_used = requirement_info[1]
         print('')
+        print('Datos de carga:')
         print('Tiempo empleado:', elapsed_time, 'mseg')
+        print('Porcentaje de Memoria RAM utilizada:', RAM_used)
         print('')
-        requirement_list = requirement_info[1]
+        requirement_list = requirement_info[2]
         printRequirement6(requirement_list, num_artists)
     else:
         sys.exit(0)

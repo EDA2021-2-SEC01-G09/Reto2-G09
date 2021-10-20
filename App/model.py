@@ -49,23 +49,23 @@ def newCatalog(data_structure):
                'nationalities_keys': None,
                'departments': None}
  
-    catalog['artists_names'] = mp.newMap(3907,
+    catalog['artists_names'] = mp.newMap(30449,
                                    maptype='PROBING',
                                    loadfactor=0.5)
-    catalog['artists_Ids'] = mp.newMap(3907,
+    catalog['artists_Ids'] = mp.newMap(30449,
                                    maptype='PROBING',
                                    loadfactor=0.5)
     catalog['artists_Ids_keys'] = lt.newList(data_structure)
-    catalog['artworks'] = mp.newMap(1543,
+    catalog['artworks'] = mp.newMap(276319,
                                    maptype='PROBING',
                                    loadfactor=0.5)
-    catalog ['birth_years'] = mp.newMap(367,
+    catalog ['birth_years'] = mp.newMap(479,
                                    maptype='PROBING',
                                    loadfactor=0.5)
-    catalog['adquisition_years'] = mp.newMap(173,
+    catalog['adquisition_years'] = mp.newMap(191,
                                    maptype='PROBING',
                                    loadfactor=0.5)
-    catalog['nationalities'] = mp.newMap(127,
+    catalog['nationalities'] = mp.newMap(239,
                                    maptype='PROBING',
                                    loadfactor=0.5)
     catalog['nationalities_keys'] = lt.newList(data_structure)
@@ -299,15 +299,16 @@ def getArtworksByAdquisitonDate(catalog, data_structure, sorting_method,
 
 def getArtworksByMediumAndArtist(catalog, artist_name):
     artist_names_map = catalog['artists_names']
+    num_more_artworks = 0
+    num_total_artworks = 0
+    num_total_mediums = 0
+    list_more_artworks = lt.newList()
+    name_more_artworks = ''
     if mp.contains(artist_names_map, artist_name):
         artist_Id = me.getValue(mp.get(catalog['artists_names'], artist_name))
         mediums_keys_list = me.getValue(mp.get(catalog['artists_Ids'], artist_Id))['mediums_keys']
         num_total_mediums = lt.size(mediums_keys_list)
         mediums_map = me.getValue(mp.get(catalog['artists_Ids'], artist_Id))['mediums']
-        num_more_artworks = 0
-        num_total_artworks = 0
-        list_more_artworks = lt.newList()
-        name_more_artworks = ''
         for medium_name in lt.iterator(mediums_keys_list):
             medium_artworks = me.getValue(mp.get(mediums_map, medium_name))
             num_medium = lt.size(medium_artworks)
@@ -323,26 +324,34 @@ def getArtworksByMediumAndArtist(catalog, artist_name):
 def getNationalitiesByNumArtworks(catalog, data_structure, sorting_method):
     nationalities_names_list = catalog['nationalities_keys']
     num_nationalities_list = lt.newList(data_structure)
-    for nationality in lt.iterator(nationalities_names_list):
-        num_artworks = lt.size(me.getValue(mp.get(catalog['nationalities'], nationality)))
-        lt.addLast(num_nationalities_list, (nationality, num_artworks))
-    SortingMethodExecution(sorting_method, num_nationalities_list, cmpNationalityByNumArtworks)
-    major_nationality_name = lt.getElement(num_nationalities_list, 1)[0]
-    major_nationality_artworks_list = me.getValue(mp.get(catalog['nationalities'], major_nationality_name))
+    major_nationality_artworks_list = lt.newList()
+    if lt.size(nationalities_names_list) >= 1:
+        for nationality in lt.iterator(nationalities_names_list):
+            num_artworks = lt.size(me.getValue(mp.get(catalog['nationalities'], nationality)))
+            lt.addLast(num_nationalities_list, (nationality, num_artworks))
+        SortingMethodExecution(sorting_method, num_nationalities_list, cmpNationalityByNumArtworks)
+        major_nationality_name = lt.getElement(num_nationalities_list, 1)[0]
+        major_nationality_artworks_list = me.getValue(mp.get(catalog['nationalities'], major_nationality_name))
     return major_nationality_artworks_list, num_nationalities_list
 
 ###########################################################################################
 
 def getTransportationCostByDepartment(catalog, data_structure, sorting_method, department):
-    department_artworks_list = me.getValue(mp.get(catalog['departments'], department))
-    requirement_info = CreateArtworkTransportationCostList(department_artworks_list, data_structure)
-    requirement_list_by_date = requirement_info[0]
-    requirement_list_by_price = requirement_info[1]
-    total_cost = requirement_info[2]
-    total_weight = requirement_info[3]   
+    departments_map = catalog['departments']
+    requirement_list_by_date = lt.newList()
+    requirement_list_by_price = lt.newList()
+    total_cost = 0
+    total_weight = 0
+    if mp.contains(departments_map, department):
+        department_artworks_list = me.getValue(mp.get(departments_map, department))
+        requirement_info = CreateArtworkTransportationCostList(department_artworks_list, data_structure)
+        requirement_list_by_date = requirement_info[0]
+        requirement_list_by_price = requirement_info[1]
+        total_cost = requirement_info[2]
+        total_weight = requirement_info[3]   
 
-    SortingMethodExecution(sorting_method, requirement_list_by_price, cmpArtworkBycost )
-    SortingMethodExecution(sorting_method, requirement_list_by_date, cmpArtworkByCreationDate)
+        SortingMethodExecution(sorting_method, requirement_list_by_price, cmpArtworkBycost )
+        SortingMethodExecution(sorting_method, requirement_list_by_date, cmpArtworkByCreationDate)
 
     return requirement_list_by_date, requirement_list_by_price, total_cost, total_weight
 
@@ -371,8 +380,10 @@ def getMostProlificArtists(catalog, data_structure, sorting_method,
                 lt.addLast(most_prolific_artists_list, (artist_name, artworks_most_used_medium, 
                 num_total_artworks, num_total_mediums, num_more_artworks, name_most_used_medium))
     SortingMethodExecution(sorting_method, most_prolific_artists_list, cmpMostProlificArtist)
-    requirement_list = lt.subList(most_prolific_artists_list, 1, num_artists)
-    
+    if lt.size(most_prolific_artists_list) > num_artists:
+        requirement_list = lt.subList(most_prolific_artists_list, 1, num_artists)
+    else:
+        requirement_list = most_prolific_artists_list
     return requirement_list
 
 ###########################################################################################
@@ -453,41 +464,64 @@ def SortingMethodExecution(sorting_method, lst, cmpFunction):
 
 def requirement1Info(requirement_list):
     num_artists = lt.size(requirement_list)
-    first_artists = lt.subList(requirement_list, 1, 3)
-    last_artists = lt.subList(requirement_list, num_artists - 2, 3)
+    if num_artists > 3:
+        first_artists = lt.subList(requirement_list, 1, 3)
+        last_artists = lt.subList(requirement_list, num_artists - 2, 3)
+    else:
+        first_artists = requirement_list
+        last_artists = requirement_list   
     return num_artists, first_artists, last_artists
 
 ###########################################################################################
 
 def requirement2Info(requirement_list):
     num_artworks = lt.size(requirement_list)
-    first_artworks = lt.subList(requirement_list, num_artworks - 2, 3)
-    last_artworks = lt.subList(requirement_list, 1, 3)
+    if num_artworks > 3:
+        first_artworks = lt.subList(requirement_list, num_artworks - 2, 3)
+        last_artworks = lt.subList(requirement_list, 1, 3)
+    else:
+        first_artworks = requirement_list
+        last_artworks = requirement_list
     return num_artworks, first_artworks, last_artworks
 
 ###########################################################################################
 
 def requirement3Info(requirement_list):
     num_artworks_medium = lt.size(requirement_list)
-    first_artworks = lt.subList(requirement_list, 1, 3)
-    last_artworks = lt.subList(requirement_list, num_artworks_medium - 2, 3)
+    if num_artworks_medium > 3:
+        first_artworks = lt.subList(requirement_list, 1, 3)
+        last_artworks = lt.subList(requirement_list, num_artworks_medium - 2, 3)
+    else:
+        first_artworks = requirement_list
+        last_artworks = requirement_list
     return num_artworks_medium, first_artworks, last_artworks
 
 ###########################################################################################
 
 def requirement4Info(requirement_list_artworks, requirement_list_nationalities):
     num_more_artworks_nationality = lt.size(requirement_list_artworks)
-    first_artworks = lt.subList(requirement_list_artworks, 1, 3)
-    last_artworks = lt.subList(requirement_list_artworks, num_more_artworks_nationality - 2, 3)
-    first_nationalities = lt.subList(requirement_list_nationalities, 1, 10)
+    if num_more_artworks_nationality > 3:
+        first_artworks = lt.subList(requirement_list_artworks, 1, 3)
+        last_artworks = lt.subList(requirement_list_artworks, num_more_artworks_nationality - 2, 3)
+    else:
+        first_artworks = requirement_list_artworks
+        last_artworks = requirement_list_artworks
+    if lt.size(requirement_list_nationalities) > 10:
+        first_nationalities = lt.subList(requirement_list_nationalities, 1, 10)
+    else:
+        first_nationalities = requirement_list_nationalities
     return first_artworks, last_artworks, first_nationalities
 
 ###########################################################################################
 
 def requirement5Info(requirement_list_by_date, requirement_list_by_price):
     num_artworks = lt.size(requirement_list_by_date)
-    oldest_artworks = lt.subList(requirement_list_by_date, 1, 3)
-    most_expensive_artworks = lt.subList(requirement_list_by_price, 1, 3)
+    if num_artworks > 5:
+        oldest_artworks = lt.subList(requirement_list_by_date, 1, 5)
+        most_expensive_artworks = lt.subList(requirement_list_by_price, 1, 5)
+    else:
+        oldest_artworks = requirement_list_by_date
+        most_expensive_artworks = requirement_list_by_date
     return num_artworks, oldest_artworks, most_expensive_artworks
 
 ###########################################################################################
